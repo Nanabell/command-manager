@@ -35,7 +35,7 @@ dependencies {
 }
 ```
 For the MicronautCommandProvider to work properly you need to define all of your commands as `@Singleton`s,  
-alternatively add the @Command to the Micronaut Annotation Processing
+alternatively add the `@Command` Annotation to the Micronaut Annotation Processing
 ```shell
 micronaut {
     ...
@@ -45,7 +45,7 @@ micronaut {
     }
 }
 ```
-Additionally, if you are using Kapt add it to kapts annotation processing as well
+Additionally, if you are using Kapt add it to kapt's annotation processing as well
 ```shell
 kapt {
     arguments {
