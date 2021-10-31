@@ -1,7 +1,7 @@
 # Command Manager 4 JDA
 This is a little project of mine to easily setup Text & Slash Command Handling for JDA.
 
-###Getting Started
+### Getting Started  
 Simply add the Command Manager to your Project
 ````shell
 dependencies {
