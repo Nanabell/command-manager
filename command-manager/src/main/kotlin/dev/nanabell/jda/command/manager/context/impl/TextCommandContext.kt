@@ -7,5 +7,5 @@ open class TextCommandContext(event: MessageReceivedEvent, override val argument
     event.author,
     event.member,
     event.channel,
-    event.guild
+    if (event.isFromGuild) event.guild else null
 ), ITextCommandContext
