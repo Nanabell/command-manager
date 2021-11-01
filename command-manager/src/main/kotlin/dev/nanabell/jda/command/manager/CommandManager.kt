@@ -24,10 +24,12 @@ import kotlin.reflect.KClass
 
 class CommandManager(
     private val prefix: String,
-    provider: ICommandProvider,
+    private val ownerId: Long,
+    private val coOwnerIds: Set<Long> = emptySet(),
     private val allowMention: Boolean = false,
     private val autoRegisterCommands: Boolean = false,
     private val listener: ICommandListener,
+    provider: ICommandProvider
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
@@ -159,7 +161,7 @@ class CommandManager(
         // TODO: Move this out of event Thread
 
         logger.trace("Received Slash Command: $event")
-        val compiled = slashCommands.firstOrNull { it.commandPath == event.commandPath }
+        val compiled = slashCommands.firstOrNull { (it.isGuildCommand == event.isFromGuild || !it.isGuildCommand) && it.commandPath == event.commandPath }
 
         if (compiled == null) {
             listener.onUnknown(event.commandPath)
@@ -175,7 +177,14 @@ class CommandManager(
         // TODO: Handle Predicates like Permissions etc
 
         // Check Owner Only Commands
-        val start = System.currentTimeMillis()
+        if (compiled.ownerOnly) {
+            val authorId = context.author.idLong
+            if (authorId != ownerId || !coOwnerIds.contains(authorId)) {
+                listener.onRejected(compiled, context, CommandRejectedException("This command can only be ran by the Bot Owner!"))
+                return
+            }
+        }
+
         try {
             listener.onExecute(compiled, context)
             when (command) {

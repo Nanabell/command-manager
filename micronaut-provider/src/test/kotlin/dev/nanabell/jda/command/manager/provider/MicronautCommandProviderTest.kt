@@ -26,6 +26,7 @@ internal class MicronautCommandProviderTest {
     internal fun `Test Injecting Provider Works`() {
         val manager = CommandManagerBuilder()
             .setPrefix(";;")
+            .setOwnerId(0)
             .setMicronautProvider()
             .build()
 
