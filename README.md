@@ -65,9 +65,10 @@ val manager = CommandManagerBuilder()
 ```
 This will automatically 
 
-## Missing Features
+## Missing Features / TODOS
 - Predicates (Like Required Permissions etc.)
 - Bunch of stuff in the Command Contexts
+- The current CommandListener Style seems very cumbersome
 ### Text Commands
 - Allow Mention to be used as Prefix
 - Add QuotationMarks to allow Spaces in Arguments

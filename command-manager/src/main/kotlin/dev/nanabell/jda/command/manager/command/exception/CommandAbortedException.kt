@@ -1,4 +1,4 @@
 package dev.nanabell.jda.command.manager.command.exception
 
-class CommandAbortedException : CommandException() {
+class CommandAbortedException(override val message: String?) : CommandException() {
 }
