@@ -4,7 +4,7 @@ import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.listener.impl.CompositeCommandListener
 import dev.nanabell.jda.command.manager.listener.impl.MetricCommandListener
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
-import dev.nanabell.jda.command.manager.provider.StaticCommandProvider
+import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 

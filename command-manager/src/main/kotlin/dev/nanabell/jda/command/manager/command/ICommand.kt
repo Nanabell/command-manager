@@ -11,7 +11,7 @@ sealed interface ICommand<T : ICommandContext> {
     fun execute(context: T)
 
     fun onReject(context: T, e: CommandRejectedException) {
-        context.reply("Your Command has been rejected! `${e.message}`")
+        context.reply("Your Command has been rejected!\n`${e.message}`")
     }
 
 }

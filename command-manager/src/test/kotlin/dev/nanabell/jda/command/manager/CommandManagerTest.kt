@@ -10,7 +10,7 @@ import dev.nanabell.jda.command.manager.command.slash.SubSubSlashCommand
 import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
 import dev.nanabell.jda.command.manager.exception.MissingParentException
 import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
-import dev.nanabell.jda.command.manager.provider.StaticCommandProvider
+import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
 import gnu.trove.set.hash.TLongHashSet
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
