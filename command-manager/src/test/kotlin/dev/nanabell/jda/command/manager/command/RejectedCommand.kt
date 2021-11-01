@@ -7,7 +7,7 @@ import dev.nanabell.jda.command.manager.context.ICommandContext
 class RejectedCommand : ITextCommand {
 
     override fun execute(context: ICommandContext) {
-        throw CommandRejectedException()
+        throw CommandRejectedException("Demo Command")
     }
 
 }
