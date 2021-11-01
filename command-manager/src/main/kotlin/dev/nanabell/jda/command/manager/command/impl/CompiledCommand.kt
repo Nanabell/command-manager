@@ -6,11 +6,11 @@ import dev.nanabell.jda.command.manager.context.ICommandContext
 import net.dv8tion.jda.api.Permission
 import kotlin.reflect.KClass
 
-class CompiledCommand(val command: IBaseCommand<out ICommandContext>) {
+class CompiledCommand(val command: ICommand<out ICommandContext>) {
 
     val name: String
     val description: String
-    val subcommandOf: KClass<out IBaseCommand<out ICommandContext>>
+    val subcommandOf: KClass<out ICommand<out ICommandContext>>
     val ownerOnly: Boolean
     val userPermission: Array<Permission>
     val botPermission: Array<Permission>

@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 annotation class Command(
     val name: String,
     val description: String,
-    val subCommandOf: KClass<out IBaseCommand<out ICommandContext>> = NullCommand::class,
+    val subCommandOf: KClass<out ICommand<out ICommandContext>> = NullCommand::class,
     val ownerOnly: Boolean = false,
     val userPermission: Array<Permission> = [],
     val botPermission: Array<Permission> = []
