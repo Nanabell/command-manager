@@ -13,6 +13,5 @@ open class SlashCommandContext(event: SlashCommandEvent) : CommandContext(
     event.user,
     event.member,
     event.channel,
-    event.guild,
-    emptyArray()
+    event.guild
 ), ISlashCommandContext
