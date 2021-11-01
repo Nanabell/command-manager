@@ -2,6 +2,7 @@ package dev.nanabell.jda.command.manager.compile.impl
 
 import dev.nanabell.jda.command.manager.command.Command
 import dev.nanabell.jda.command.manager.command.ICommand
+import dev.nanabell.jda.command.manager.command.annotation.OwnerOnly
 import dev.nanabell.jda.command.manager.command.annotation.SubCommandOf
 import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
@@ -17,6 +18,7 @@ class AnnotationCommandCompiler : ICommandCompiler {
         }
 
         val commandAnnotation = command::class.java.getAnnotation(Command::class.java)
+        val ownerOnly = command::class.java.isAnnotationPresent(OwnerOnly::class.java)
 
         var subCommandOf: KClass<out ICommand<out ICommandContext>>? = null
         if (command::class.java.isAnnotationPresent(SubCommandOf::class.java)) {
@@ -28,7 +30,7 @@ class AnnotationCommandCompiler : ICommandCompiler {
             commandAnnotation.name,
             commandAnnotation.description,
             subCommandOf,
-            commandAnnotation.ownerOnly,
+            ownerOnly,
             commandAnnotation.userPermission,
             commandAnnotation.botPermission
         )

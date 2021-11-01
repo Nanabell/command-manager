@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.Permission
 annotation class Command(
     val name: String,
     val description: String,
-    val ownerOnly: Boolean = false,
     val userPermission: Array<Permission> = [],
     val botPermission: Array<Permission> = []
 )

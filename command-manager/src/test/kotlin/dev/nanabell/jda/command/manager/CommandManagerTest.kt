@@ -282,6 +282,34 @@ internal class CommandManagerTest {
         }
     }
 
+
+    @Test
+    internal fun `Test Owner Only Command as Owner Executes Successful`() {
+        val provider = StaticCommandProvider(listOf(OwnerOnlyCommand()))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
+
+        manager.onMessageReceived(getMessageReceivedEvent(";;owner",))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+    }
+
+    @Test
+    internal fun `Test Owner Only Command as non Owner does not Execute`() {
+        val provider = StaticCommandProvider(listOf(OwnerOnlyCommand()))
+        val manager = CommandManagerBuilder(";;", 1).setCommandProvider(provider).build()
+
+        manager.onMessageReceived(getMessageReceivedEvent(";;owner",))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Executed Command")
+    }
+
+    @Test
+    internal fun `Test Owner Only Command as CoOwner Executes Successful`() {
+        val provider = StaticCommandProvider(listOf(OwnerOnlyCommand()))
+        val manager = CommandManagerBuilder(";;", 1).setCommandProvider(provider).setCoOwnerIds(0).build()
+
+        manager.onMessageReceived(getMessageReceivedEvent(";;owner",))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+    }
+
     private fun getMessageReceivedEvent(
         content: String,
         isBot: Boolean = false,
