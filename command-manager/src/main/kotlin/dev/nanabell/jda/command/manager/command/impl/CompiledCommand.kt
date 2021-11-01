@@ -12,7 +12,7 @@ data class CompiledCommand(
     val command: ICommand<out ICommandContext>,
     val name: String,
     val description: String,
-    val subcommandOf: KClass<out ICommand<out ICommandContext>>,
+    val subcommandOf: KClass<out ICommand<out ICommandContext>>?,
     val ownerOnly: Boolean,
     val userPermission: Array<Permission>,
     val botPermission: Array<Permission>,

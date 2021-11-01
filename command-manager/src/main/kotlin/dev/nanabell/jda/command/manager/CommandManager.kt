@@ -85,7 +85,7 @@ class CommandManager(
         }
         seen.add(compiled.command::class)
 
-        if (compiled.subcommandOf == NullCommand::class) return compiled.commandPath
+        if (compiled.subcommandOf == null) return compiled.commandPath
         val parent = list.firstOrNull { it.command::class == compiled.subcommandOf } ?: throw MissingParentException(compiled)
         val parentPath = updateCommandPath(parent, list, seen)
 
