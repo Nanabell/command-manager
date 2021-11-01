@@ -9,13 +9,14 @@ import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import java.util.*
 
-open class CommandContext(event: MessageReceivedEvent, override val arguments: Array<String>) : ICommandContext {
-    override val uuid: UUID = UUID.randomUUID()
+sealed class CommandContext(
+    override val author: User,
+    override val member: Member?,
+    override val channel: MessageChannel,
+    override val guild: Guild?
+) : ICommandContext {
 
-    override val author: User = event.author
-    override val member: Member? = event.member
-    override val channel: MessageChannel = event.channel
-    override val guild: Guild? = if (event.isFromGuild) event.guild else null
+    override val uuid: UUID = UUID.randomUUID()
 
     override fun reply(message: String) {
         TODO("Not yet implemented")

@@ -1,5 +1,5 @@
 package dev.nanabell.jda.command.manager.command
 
-import dev.nanabell.jda.command.manager.context.IGuildCommandContext
+import dev.nanabell.jda.command.manager.context.IGuildSlashCommandContext
 
-interface IGuildSlashCommand : IBaseCommand<IGuildCommandContext>
+interface IGuildSlashCommand : IBaseCommand<IGuildSlashCommandContext>

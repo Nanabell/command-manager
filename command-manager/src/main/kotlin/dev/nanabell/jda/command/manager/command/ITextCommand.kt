@@ -1,5 +1,5 @@
 package dev.nanabell.jda.command.manager.command
 
-import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.context.ITextCommandContext
 
-interface ITextCommand : IBaseCommand<ICommandContext>
+interface ITextCommand : IBaseCommand<ITextCommandContext>

@@ -8,8 +8,6 @@ interface ICommandContext {
 
     val uuid: UUID
 
-    val arguments: Array<String>
-
     val author: User
     val member: Member?
     val channel: MessageChannel
@@ -20,7 +18,6 @@ interface ICommandContext {
 
     val selfMember: Member?
         get() = guild?.selfMember
-
 
     val isFromGuild: Boolean
         get() = guild != null

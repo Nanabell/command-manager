@@ -5,14 +5,8 @@ import dev.nanabell.jda.command.manager.command.exception.CommandAbortedExceptio
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException
 import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.command.listener.ICommandListener
-import dev.nanabell.jda.command.manager.context.ICommandContext
-import dev.nanabell.jda.command.manager.context.IGuildCommandContext
-import dev.nanabell.jda.command.manager.context.IGuildSlashCommandContext
-import dev.nanabell.jda.command.manager.context.ISlashCommandContext
-import dev.nanabell.jda.command.manager.context.impl.CommandContext
-import dev.nanabell.jda.command.manager.context.impl.GuildCommandContext
-import dev.nanabell.jda.command.manager.context.impl.GuildSlashCommandContext
-import dev.nanabell.jda.command.manager.context.impl.SlashCommandContext
+import dev.nanabell.jda.command.manager.context.*
+import dev.nanabell.jda.command.manager.context.impl.*
 import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
 import dev.nanabell.jda.command.manager.exception.MissingParentException
 import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
@@ -154,7 +148,7 @@ class CommandManager(
         val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
 
         // Execute Command
-        val context = if (event.isFromGuild) GuildCommandContext(event, arguments) else CommandContext(event, arguments)
+        val context = if (event.isFromGuild) GuildTextCommandContext(event, arguments) else TextCommandContext(event, arguments)
         executeCommand(compiled, context)
     }
 
@@ -215,8 +209,8 @@ class CommandManager(
         try {
             listener.onExecute(compiled, context)
             when (command) {
-                is ITextCommand -> command.execute(context)
-                is IGuildTextCommand -> command.execute(context as IGuildCommandContext)
+                is ITextCommand -> command.execute(context as ITextCommandContext)
+                is IGuildTextCommand -> command.execute(context as IGuildTextCommandContext)
                 is ISlashCommand -> command.execute(context as ISlashCommandContext)
                 is IGuildSlashCommand -> command.execute(context as IGuildSlashCommandContext)
             }
