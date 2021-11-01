@@ -4,6 +4,7 @@ import dev.nanabell.jda.command.manager.command.*
 import dev.nanabell.jda.command.manager.command.exception.CommandAbortedException
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException
 import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
+import dev.nanabell.jda.command.manager.command.listener.ICommandListener
 import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.context.IGuildCommandContext
 import dev.nanabell.jda.command.manager.context.ISlashCommandContext
@@ -15,13 +16,10 @@ import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
 import dev.nanabell.jda.command.manager.exception.MissingParentException
 import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
-import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.Metrics
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
-import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 class CommandManager(
@@ -29,20 +27,13 @@ class CommandManager(
     provider: ICommandProvider,
     private val allowMention: Boolean = false,
     private val autoRegisterCommands: Boolean = false,
-    registry: MeterRegistry = Metrics.globalRegistry
+    private val listener: ICommandListener,
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
 
     private val slashCommands: MutableList<CompiledCommand> = mutableListOf()
     private val textCommands: MutableList<CompiledCommand> = mutableListOf()
-
-    private val commandSuccessCount = registry.counter("command.executed", "status", "success")
-    private val commandRejectCount = registry.counter("command.executed", "status", "rejected")
-    private val commandAbortCount = registry.counter("command.executed", "status", "aborted")
-    private val commandFailCount = registry.counter("command.executed", "status", "failed")
-    private val unknownCommandCount = registry.counter("command.unknown")
-    private val commandExecuteTimer = registry.timer("command.executed.time")
 
     init {
         // Load Commands
@@ -108,7 +99,6 @@ class CommandManager(
         // Ignore Bots, System & Webhook Messages
         if (event.author.isBot || event.author.isSystem || event.isWebhookMessage) {
             logger.trace("Ignoring Message {}. Bot={}, System={}, Webhook={}", event.messageIdLong, event.author.isBot, event.author.isSystem, event.isWebhookMessage)
-            commandRejectCount.increment()
             return
         }
 
@@ -154,17 +144,15 @@ class CommandManager(
         }
 
         if (compiled == null) {
-            logger.trace("Command parse failed to find any command for {}", commandPath)
-            unknownCommandCount.increment()
+            listener.onUnknown(commandPath)
             return
         }
 
         val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
 
         // Execute Command
-        logger.debug("Executing TextCommand: $compiled")
         val context = if (event.isFromGuild) GuildCommandContext(event, arguments) else CommandContext(event, arguments)
-        executeCommand(compiled.command, context)
+        executeCommand(compiled, context)
     }
 
     override fun onSlashCommand(event: SlashCommandEvent) {
@@ -174,47 +162,43 @@ class CommandManager(
         val compiled = slashCommands.firstOrNull { it.commandPath == event.commandPath }
 
         if (compiled == null) {
-            logger.warn("Received Unknown Slash Command with path: ${event.commandPath}")
-            unknownCommandCount.increment()
+            listener.onUnknown(event.commandPath)
             return
         }
 
-        logger.debug("Executing SlashCommand: $compiled")
         val context = if (event.isFromGuild) GuildSlashCommandContext(event) else SlashCommandContext(event)
-        executeCommand(compiled.command, context)
+        executeCommand(compiled, context)
     }
 
-    private fun executeCommand(command: IBaseCommand<out ICommandContext>, context: ICommandContext) {
+    private fun executeCommand(compiled: CompiledCommand, context: ICommandContext) {
+        val command = compiled.command
         // TODO: Handle Predicates like Permissions etc
 
-        var success = false
+        // Check Owner Only Commands
         val start = System.currentTimeMillis()
         try {
+            listener.onExecute(compiled, context)
             when (command) {
                 is ITextCommand -> command.execute(context)
                 is IGuildTextCommand -> command.execute(context as IGuildCommandContext)
                 is ISlashCommand -> command.execute(context as ISlashCommandContext)
                 is IGuildSlashCommand -> command.execute(context as IGuildCommandContext)
             }
-
-            success = true
-            commandSuccessCount.increment()
         } catch (e: CommandRejectedException) {
-            logger.debug("Command ${command::class.qualifiedName} has been Rejected", e)
-            commandRejectCount.increment()
-        } catch (e: CommandAbortedException) {
-            logger.debug("Command ${command::class.qualifiedName} has been Aborted", e)
-            commandAbortCount.increment()
-        } catch (e: Throwable) {
-            logger.error("Command ${command::class.qualifiedName} has failed!", e)
-            commandFailCount.increment()
-        } finally {
-            val stop = System.currentTimeMillis()
-            commandExecuteTimer.record(stop - start, TimeUnit.MILLISECONDS)
+            listener.onRejected(compiled, context, e)
+            return
 
-            if (success)
-                logger.debug("Command ${command::class.qualifiedName} has finished Executing in ${stop - start}ms")
+        } catch (e: CommandAbortedException) {
+            listener.onAborted(compiled, context, e)
+            return
+
+        } catch (e: Throwable) {
+            listener.onFailed(compiled, context, e)
+            return
+
         }
+
+        listener.onExecuted(compiled, context)
     }
 
     fun getCommands(): List<CompiledCommand> {
