@@ -11,6 +11,7 @@ import dev.nanabell.jda.command.manager.context.impl.*
 import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
 import dev.nanabell.jda.command.manager.exception.MissingParentException
 import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
+import dev.nanabell.jda.command.manager.predicate.IPredicateResolver
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -20,13 +21,12 @@ import kotlin.reflect.KClass
 
 class CommandManager(
     private val prefix: String,
-    private val ownerId: Long,
-    private val coOwnerIds: Set<Long> = emptySet(),
     private val allowMention: Boolean = false,
     private val autoRegisterCommands: Boolean = false,
     private val listener: ICommandListener,
     provider: ICommandProvider,
-    compiler: ICommandCompiler
+    compiler: ICommandCompiler,
+    private val resolver: IPredicateResolver
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
@@ -174,39 +174,10 @@ class CommandManager(
         val command = compiled.command
         // TODO: Handle Predicates like Permissions etc
 
-        // Check Owner Only Commands
-        if (compiled.ownerOnly) {
-            val authorId = context.author.idLong
-            if (authorId != ownerId && !coOwnerIds.contains(authorId)) {
-                listener.onRejected(compiled, context, CommandRejectedException("This command can only be ran by the Bot Owner!"))
-                return
-            }
-        }
 
-        val userPerms = compiled.userPermission
-        if (userPerms.isNotEmpty()) {
-            if (!context.isFromGuild) {
-                listener.onRejected(compiled, context, CommandRejectedException("Global Command has Guild specific Predicates! $compiled"))
-                return
-            }
-
-            if (!context.hasPermission(context.member!!, *userPerms)) {
-                listener.onRejected(compiled, context, CommandRejectedException("User Missing Permission Requirement"))
-                return
-            }
-        }
-
-        val botPerms = compiled.botPermission
-        if (botPerms.isNotEmpty()) {
-            if (!context.isFromGuild) {
-                listener.onRejected(compiled, context, CommandRejectedException("Global Command has Guild specific Predicates! $compiled"))
-                return
-            }
-
-            if (!context.hasPermission(context.selfMember!!, *botPerms)) {
-                listener.onRejected(compiled, context, CommandRejectedException("Bot Missing Permission Requirement"))
-                return
-            }
+        if (!resolver.resolve(compiled, context)) {
+            listener.onRejected(compiled, context, CommandRejectedException("Think of something here")) // STOPSHIP: 01/11/2021
+            return
         }
 
         try {
