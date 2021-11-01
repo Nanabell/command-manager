@@ -177,7 +177,7 @@ class CommandManager(
         // Check Owner Only Commands
         if (compiled.ownerOnly) {
             val authorId = context.author.idLong
-            if (authorId != ownerId || !coOwnerIds.contains(authorId)) {
+            if (authorId != ownerId && !coOwnerIds.contains(authorId)) {
                 listener.onRejected(compiled, context, CommandRejectedException("This command can only be ran by the Bot Owner!"))
                 return
             }
