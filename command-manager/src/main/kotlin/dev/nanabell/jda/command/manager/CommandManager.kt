@@ -4,6 +4,7 @@ import dev.nanabell.jda.command.manager.command.*
 import dev.nanabell.jda.command.manager.command.exception.CommandAbortedException
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException
 import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
+import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.context.*
 import dev.nanabell.jda.command.manager.context.impl.*
@@ -24,7 +25,8 @@ class CommandManager(
     private val allowMention: Boolean = false,
     private val autoRegisterCommands: Boolean = false,
     private val listener: ICommandListener,
-    provider: ICommandProvider
+    provider: ICommandProvider,
+    compiler: ICommandCompiler
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
@@ -41,9 +43,10 @@ class CommandManager(
         for (command in commands) {
             logger.trace("Compiling Command ${command::class.simpleName}")
 
-            when (command) {
-                is ITextCommand, is IGuildTextCommand  -> textCommands.add(CompiledCommand(command))
-                is ISlashCommand, is IGuildSlashCommand -> slashCommands.add(CompiledCommand(command))
+            val compiled = compiler.compile(command)
+            when (compiled.isSlashCommand) {
+                false  -> textCommands.add(compiled)
+                true -> slashCommands.add(compiled)
             }
         }
 

@@ -1,5 +1,7 @@
 package dev.nanabell.jda.command.manager
 
+import dev.nanabell.jda.command.manager.compile.ICommandCompiler
+import dev.nanabell.jda.command.manager.compile.impl.AnnotationCommandCompiler
 import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.listener.impl.CompositeCommandListener
 import dev.nanabell.jda.command.manager.listener.impl.MetricCommandListener
@@ -9,26 +11,25 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 
 @Suppress("unused")
-class CommandManagerBuilder {
+class CommandManagerBuilder(private var prefix: String, private var ownerId: Long) {
 
-    private var prefix: String? = null
-    private var ownerId: Long? = null
     private var coOwnerIds: MutableSet<Long> = mutableSetOf()
     private var allowMention: Boolean = false
     private var autoRegister: Boolean = false
 
-    private var provider: ICommandProvider = StaticCommandProvider(emptyList())
     private var registry: MeterRegistry = Metrics.globalRegistry
     private var listener: CompositeCommandListener = CompositeCommandListener()
+    private var provider: ICommandProvider = StaticCommandProvider(emptyList())
+    private var compiler: ICommandCompiler = AnnotationCommandCompiler()
 
     private var registerMetrics: Boolean = true
 
 
     fun build(): CommandManager {
         if (registerMetrics)
-            listener.removeListener(MetricCommandListener(registry))
+            listener.registerListener(MetricCommandListener(registry))
 
-        return CommandManager(checkNotNull(prefix), checkNotNull(ownerId), coOwnerIds, allowMention, autoRegister, listener, provider)
+        return CommandManager(prefix, ownerId, coOwnerIds, allowMention, autoRegister, listener, provider, compiler)
     }
 
     fun setPrefix(prefix: String): CommandManagerBuilder {
@@ -61,11 +62,6 @@ class CommandManagerBuilder {
         return this
     }
 
-    fun setCommandProvider(provider: ICommandProvider): CommandManagerBuilder {
-        this.provider = provider
-        return this
-    }
-
     fun registerCommandListener(listener: ICommandListener): CommandManagerBuilder {
         this.listener.registerListener(listener)
         return this
@@ -83,6 +79,16 @@ class CommandManagerBuilder {
 
     fun setRegisterMetrics(registerMetrics: Boolean): CommandManagerBuilder {
         this.registerMetrics = registerMetrics
+        return this
+    }
+
+    fun setCommandProvider(provider: ICommandProvider): CommandManagerBuilder {
+        this.provider = provider
+        return this
+    }
+
+    fun setCommandCompiler(compiler: ICommandCompiler): CommandManagerBuilder {
+        this.compiler = compiler
         return this
     }
 }

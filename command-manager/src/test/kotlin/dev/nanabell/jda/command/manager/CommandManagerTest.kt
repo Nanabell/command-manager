@@ -2,11 +2,8 @@ package dev.nanabell.jda.command.manager
 
 import dev.nanabell.jda.command.manager.command.*
 import dev.nanabell.jda.command.manager.command.exception.MissingAnnotationException
-import dev.nanabell.jda.command.manager.listener.impl.MetricCommandListener
-import dev.nanabell.jda.command.manager.command.slash.InvalidSubSlashCommand
-import dev.nanabell.jda.command.manager.command.slash.SlashCommand
-import dev.nanabell.jda.command.manager.command.slash.SubSlashCommand
-import dev.nanabell.jda.command.manager.command.slash.SubSubSlashCommand
+import dev.nanabell.jda.command.manager.command.slash.*
+import dev.nanabell.jda.command.manager.compile.exception.CommandCompileException
 import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
 import dev.nanabell.jda.command.manager.exception.MissingParentException
 import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
@@ -48,28 +45,28 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Loading Single Command`() {
         val provider = StaticCommandProvider(listOf(DummyCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
         assertEquals(1, manager.getCommands().size, "Expected only 1 Command to be loaded")
     }
 
     @Test
     internal fun `Test Loading Multiple Commands`() {
         val provider = StaticCommandProvider(listOf(DummyCommand(), FailingCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
         assertEquals(2, manager.getCommands().size, "Expected only 2 Commands to be loaded")
     }
 
     @Test
     internal fun `Test Loading Sub Commands`() {
         val provider = StaticCommandProvider(listOf(DummyCommand(), SubCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
         assertEquals(2, manager.getCommands().size, "Expected only 2 Commands to be loaded")
     }
 
     @Test
     internal fun `Test Loading multiSub Commands`() {
         val provider = StaticCommandProvider(listOf(DummyCommand(), SubCommand(), SubSubCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
         assertEquals(3, manager.getCommands().size, "Expected only 3 Commands to be loaded")
     }
 
@@ -78,7 +75,7 @@ internal class CommandManagerTest {
         val provider = StaticCommandProvider(listOf(RecursiveCommand1(), RecursiveCommand2()))
 
         assertThrows(CommandPathLoopException::class.java) {
-            CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+           CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
         }
     }
 
@@ -87,14 +84,14 @@ internal class CommandManagerTest {
         val provider = StaticCommandProvider(listOf(UnregisteredParentCommand()))
 
         assertThrows(MissingParentException::class.java) {
-            CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+           CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
         }
     }
 
     @Test
     internal fun `Test Executing Example Text Command`() {
         val provider = StaticCommandProvider(listOf(DummyCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
 
         manager.onMessageReceived(getMessageReceivedEvent(";;example"))
@@ -104,7 +101,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Try Loading Unknown Command`() {
         val provider = StaticCommandProvider(listOf(DummyCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
 
         manager.onMessageReceived(getMessageReceivedEvent(";;unknown"))
@@ -115,7 +112,7 @@ internal class CommandManagerTest {
     internal fun `Test Receiving Correct Argument Count Example Text Command`() {
         val argumentCounter = AtomicInteger(0)
         val provider = StaticCommandProvider(listOf(ArgumentCounterCommand(argumentCounter)))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent(";;count argument1 argument2 argument3"))
         assertEquals(3, argumentCounter.get(), "Expected 3 arguments Command")
@@ -126,7 +123,7 @@ internal class CommandManagerTest {
     internal fun `Test Receiving Correct Argument Count Example Text Command No Arguments`() {
         val argumentCounter = AtomicInteger(0)
         val provider = StaticCommandProvider(listOf(ArgumentCounterCommand(argumentCounter)))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent(";;count"))
         assertEquals(0, argumentCounter.get(), "Expected 0 arguments Command")
@@ -136,7 +133,7 @@ internal class CommandManagerTest {
     internal fun `Test Command by Bot is Ignored`() {
         Metrics.addRegistry(SimpleMeterRegistry())
         val provider = StaticCommandProvider(listOf(DummyCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent(";;count", isBot = true))
         assertEquals(0.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
@@ -146,7 +143,7 @@ internal class CommandManagerTest {
     internal fun `Test Command by Webhook is Ignored`() {
         Metrics.addRegistry(SimpleMeterRegistry())
         val provider = StaticCommandProvider(listOf(DummyCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent(";;count", isWebhook = true))
         assertEquals(0.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
@@ -156,7 +153,7 @@ internal class CommandManagerTest {
     internal fun `Test Command by System is Ignored`() {
         Metrics.addRegistry(SimpleMeterRegistry())
         val provider = StaticCommandProvider(listOf(DummyCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent(";;count", isSystem = true))
         assertEquals(0.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
@@ -165,7 +162,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test GuildCommand is executed in Guild Context`() {
         val provider = StaticCommandProvider(listOf(GuildCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent(";;guild", isGuild = true))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
@@ -174,7 +171,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Command failure is handled`() {
         val provider = StaticCommandProvider(listOf(FailingCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent(";;fail", isGuild = true))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "failed").count(), "Expected 1 Failed Command")
@@ -183,7 +180,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Command abortion is handled`() {
         val provider = StaticCommandProvider(listOf(AbortCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent(";;abort", isGuild = true))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "aborted").count(), "Expected 1 Aborted Command")
@@ -192,7 +189,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Command does not handle on invalid prefix`() {
         val provider = StaticCommandProvider(listOf(AbortCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent("::abort", isGuild = true))
         assertEquals(0.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 0 Executed Command")
@@ -201,7 +198,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Command throws CommandRejectedException`() {
         val provider = StaticCommandProvider(listOf(RejectedCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onMessageReceived(getMessageReceivedEvent(";;rejected", isGuild = true))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
@@ -210,7 +207,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Slash Command Executes`() {
         val provider = StaticCommandProvider(listOf(SlashCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onSlashCommand(getSlashCommandEvent("slash"))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
@@ -219,7 +216,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Global Slash Command Executes in Guild`() {
         val provider = StaticCommandProvider(listOf(SlashCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onSlashCommand(getSlashCommandEvent("slash", isGuild = true))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
@@ -228,7 +225,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Guild Slash Command does not Execute in DMs`() {
         val provider = StaticCommandProvider(listOf(GuildSlashCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onSlashCommand(getSlashCommandEvent("guild", isGuild = false))
         assertEquals(1.0, Metrics.counter("command.unknown").count(), "Expected 0 Executed Commands")
@@ -237,7 +234,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Slash Command that does not Exist`() {
         val provider = StaticCommandProvider(listOf())
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onSlashCommand(getSlashCommandEvent("guild"))
         assertEquals(1.0, Metrics.counter("command.unknown").count(), "Expected 1 Unknown Command")
@@ -246,7 +243,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Sub Slash Command Executes`() {
         val provider = StaticCommandProvider(listOf(SubSlashCommand(), SlashCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onSlashCommand(getSlashCommandEvent("slash", sub = "sub"))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
@@ -255,7 +252,7 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test SubGroup Sub Slash Command Executes`() {
         val provider = StaticCommandProvider(listOf(SubSubSlashCommand(), SubSlashCommand(), SlashCommand()))
-        val manager = CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry))
+        val manager = CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
 
         manager.onSlashCommand(getSlashCommandEvent("slash", sub = "subsub", group = "sub"))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
@@ -271,13 +268,18 @@ internal class CommandManagerTest {
                 SlashCommand()
             )
         )
-        assertThrows(SlashCommandDepthException::class.java) { CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry)) }
+
+        assertThrows(SlashCommandDepthException::class.java) {
+            CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
+        }
     }
 
     @Test
     internal fun `Test Command without Annotation fails to build`() {
         val provider = StaticCommandProvider(listOf(NoAnnotationCommand()))
-        assertThrows(MissingAnnotationException::class.java) { CommandManager(";;", 0, provider = provider, listener = MetricCommandListener(Metrics.globalRegistry)) }
+        assertThrows(CommandCompileException::class.java) {
+            CommandManagerBuilder(";;", 0).setCommandProvider(provider).build()
+        }
     }
 
     private fun getMessageReceivedEvent(
