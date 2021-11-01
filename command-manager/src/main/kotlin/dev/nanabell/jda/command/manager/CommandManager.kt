@@ -7,6 +7,7 @@ import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.command.listener.ICommandListener
 import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.context.IGuildCommandContext
+import dev.nanabell.jda.command.manager.context.IGuildSlashCommandContext
 import dev.nanabell.jda.command.manager.context.ISlashCommandContext
 import dev.nanabell.jda.command.manager.context.impl.CommandContext
 import dev.nanabell.jda.command.manager.context.impl.GuildCommandContext
@@ -124,7 +125,7 @@ class CommandManager(
         logger.trace("Found correctly prefixed message {}, beginning command Parsing", message.idLong)
         val commandPath = content.replace(' ', '/')
         val paths = commandPath.split('/')
-        logger.trace("Build TextCommandPath: /{}", commandPath)
+        logger.trace("Built TextCommandPath: /{}", commandPath)
 
         // Parse Command from CommandPath
         var compiled: CompiledCommand? = null
@@ -185,13 +186,39 @@ class CommandManager(
             }
         }
 
+        val userPerms = compiled.userPermission
+        if (userPerms.isNotEmpty()) {
+            if (!context.isFromGuild) {
+                listener.onRejected(compiled, context, CommandRejectedException("Global Command has Guild specific Predicates! $compiled"))
+                return
+            }
+
+            if (!context.hasPermission(context.member!!, *userPerms)) {
+                listener.onRejected(compiled, context, CommandRejectedException("User Missing Permission Requirement"))
+                return
+            }
+        }
+
+        val botPerms = compiled.botPermission
+        if (botPerms.isNotEmpty()) {
+            if (!context.isFromGuild) {
+                listener.onRejected(compiled, context, CommandRejectedException("Global Command has Guild specific Predicates! $compiled"))
+                return
+            }
+
+            if (!context.hasPermission(context.selfMember!!, *botPerms)) {
+                listener.onRejected(compiled, context, CommandRejectedException("Bot Missing Permission Requirement"))
+                return
+            }
+        }
+
         try {
             listener.onExecute(compiled, context)
             when (command) {
                 is ITextCommand -> command.execute(context)
                 is IGuildTextCommand -> command.execute(context as IGuildCommandContext)
                 is ISlashCommand -> command.execute(context as ISlashCommandContext)
-                is IGuildSlashCommand -> command.execute(context as IGuildCommandContext)
+                is IGuildSlashCommand -> command.execute(context as IGuildSlashCommandContext)
             }
         } catch (e: CommandRejectedException) {
             listener.onRejected(compiled, context, e)
