@@ -8,7 +8,5 @@ import net.dv8tion.jda.api.Permission
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Command(
     val name: String,
-    val description: String,
-    val userPermission: Array<Permission> = [],
-    val botPermission: Array<Permission> = []
+    val description: String
 )
