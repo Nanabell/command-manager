@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import java.util.*
 
 open class CommandContext(event: MessageReceivedEvent, override val arguments: Array<String>) : ICommandContext {
 
@@ -13,5 +14,6 @@ open class CommandContext(event: MessageReceivedEvent, override val arguments: A
     override val member: Member? = event.member
     override val channel: MessageChannel = event.channel
     override val guild: Guild? = if (event.isFromGuild) event.guild else null
+    override val uuid: UUID = UUID.randomUUID()
 
 }

@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.User
+import java.util.*
 
 interface ICommandContext {
 
@@ -13,4 +14,6 @@ interface ICommandContext {
     val member: Member?
     val channel: MessageChannel
     val guild: Guild?
+
+    val uuid: UUID
 }
