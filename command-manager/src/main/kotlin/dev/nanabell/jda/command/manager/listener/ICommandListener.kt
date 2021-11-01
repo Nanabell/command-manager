@@ -1,4 +1,4 @@
-package dev.nanabell.jda.command.manager.command.listener
+package dev.nanabell.jda.command.manager.listener
 
 import dev.nanabell.jda.command.manager.command.exception.CommandAbortedException
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException

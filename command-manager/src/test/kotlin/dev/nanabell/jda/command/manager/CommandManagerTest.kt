@@ -2,7 +2,7 @@ package dev.nanabell.jda.command.manager
 
 import dev.nanabell.jda.command.manager.command.*
 import dev.nanabell.jda.command.manager.command.exception.MissingAnnotationException
-import dev.nanabell.jda.command.manager.command.listener.impl.MetricCommandListener
+import dev.nanabell.jda.command.manager.listener.impl.MetricCommandListener
 import dev.nanabell.jda.command.manager.command.slash.InvalidSubSlashCommand
 import dev.nanabell.jda.command.manager.command.slash.SlashCommand
 import dev.nanabell.jda.command.manager.command.slash.SubSlashCommand

@@ -4,7 +4,7 @@ import dev.nanabell.jda.command.manager.command.*
 import dev.nanabell.jda.command.manager.command.exception.CommandAbortedException
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException
 import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
-import dev.nanabell.jda.command.manager.command.listener.ICommandListener
+import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.context.*
 import dev.nanabell.jda.command.manager.context.impl.*
 import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
