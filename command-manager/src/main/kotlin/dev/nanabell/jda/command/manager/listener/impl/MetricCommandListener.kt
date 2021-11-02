@@ -24,7 +24,6 @@ class MetricCommandListener(registry: MeterRegistry) : ICommandListener {
 
     override fun onExecute(command: CompiledCommand, context: ICommandContext) {
         timings[context.uuid] = System.currentTimeMillis()
-        logger.debug("Executing Command: $command")
     }
 
     override fun onExecuted(command: CompiledCommand, context: ICommandContext) {
@@ -37,27 +36,21 @@ class MetricCommandListener(registry: MeterRegistry) : ICommandListener {
         val duration = System.currentTimeMillis() - start
         executeTimer.record(duration, TimeUnit.MILLISECONDS)
         successCount.increment()
-
-        logger.debug("Command ${command.command::class.qualifiedName} has finished Executing in ${duration}ms")
     }
 
     override fun onRejected(command: CompiledCommand, context: ICommandContext, e: CommandRejectedException) {
-        logger.debug("Command ${command.command::class.qualifiedName} has been Rejected", e)
         rejectCount.increment()
     }
 
     override fun onAborted(command: CompiledCommand, context: ICommandContext, e: CommandAbortedException) {
-        logger.debug("Command ${command.command::class.qualifiedName} has been Aborted", e)
         abortCount.increment()
     }
 
     override fun onFailed(command: CompiledCommand, context: ICommandContext, throwable: Throwable) {
-        logger.error("Command ${command.command::class.qualifiedName} has failed!", throwable)
         failCount.increment()
     }
 
     override fun onUnknown(commandPath: String) {
-        logger.debug("Unable to find Command with Path: /$commandPath")
         unknownCount.increment()
     }
 

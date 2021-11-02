@@ -144,6 +144,7 @@ class CommandManager(
         }
 
         if (compiled == null) {
+            logger.debug("Unable to find Command with Path: /$commandPath")
             listener.onUnknown(commandPath)
             return
         }
@@ -162,6 +163,7 @@ class CommandManager(
         val compiled = slashCommands.firstOrNull { (it.isGuildCommand == event.isFromGuild || !it.isGuildCommand) && it.commandPath == event.commandPath }
 
         if (compiled == null) {
+            logger.debug("Unable to find Command with Path: /${event.commandPath}")
             listener.onUnknown(event.commandPath)
             return
         }
@@ -172,8 +174,6 @@ class CommandManager(
 
     private fun executeCommand(compiled: CompiledCommand, context: ICommandContext) {
         val command = compiled.command
-        // TODO: Handle Predicates like Permissions etc
-
 
         if (!resolver.resolve(compiled, context)) {
             listener.onRejected(compiled, context, CommandRejectedException("Think of something here")) // STOPSHIP: 01/11/2021
@@ -181,28 +181,37 @@ class CommandManager(
         }
 
         try {
+            logger.debug("Executing Command: $command")
             listener.onExecute(compiled, context)
+
+            val start = System.currentTimeMillis()
             when (command) {
                 is ITextCommand -> command.execute(context as ITextCommandContext)
                 is IGuildTextCommand -> command.execute(context as IGuildTextCommandContext)
                 is ISlashCommand -> command.execute(context as ISlashCommandContext)
                 is IGuildSlashCommand -> command.execute(context as IGuildSlashCommandContext)
             }
+
+            val duration = start - System.currentTimeMillis()
+            logger.debug("Command ${command::class.qualifiedName} has finished Executing in ${duration}ms")
+            listener.onExecuted(compiled, context)
+
         } catch (e: CommandRejectedException) {
+            logger.debug("Command ${command::class.qualifiedName} has been Rejected", e)
             listener.onRejected(compiled, context, e)
             return
 
         } catch (e: CommandAbortedException) {
+            logger.debug("Command ${command::class.qualifiedName} has been Aborted", e)
             listener.onAborted(compiled, context, e)
             return
 
         } catch (e: Throwable) {
+            logger.error("Command ${command::class.qualifiedName} has failed!", e)
             listener.onFailed(compiled, context, e)
             return
 
         }
-
-        listener.onExecuted(compiled, context)
     }
 
     fun getCommands(): List<CompiledCommand> {
