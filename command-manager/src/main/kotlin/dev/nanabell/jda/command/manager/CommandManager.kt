@@ -7,6 +7,7 @@ import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.context.impl.CommandContext
 import dev.nanabell.jda.command.manager.listener.ICommandListener
+import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import dev.nanabell.jda.command.manager.permission.IPermissionHandler
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
@@ -22,7 +23,8 @@ class CommandManager(
     private val listener: ICommandListener,
     provider: ICommandProvider,
     compiler: ICommandCompiler,
-    private val permissionHandler: IPermissionHandler
+    private val permissionHandler: IPermissionHandler,
+    private val metrics: ICommandMetrics
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
@@ -105,6 +107,7 @@ class CommandManager(
         if (compiled == null) {
             logger.debug("Unable to find Command with Path: /$commandPath")
             listener.onUnknown(commandPath)
+            metrics.incUnknown()
             return
         }
 
@@ -122,6 +125,7 @@ class CommandManager(
         if (compiled == null) {
             logger.debug("Unable to find Command with Path: /${event.commandPath}")
             listener.onUnknown(event.commandPath)
+            metrics.incUnknown()
             return
         }
 
@@ -133,6 +137,7 @@ class CommandManager(
 
         if (!permissionHandler.handle(compiled, context)) {
             listener.onRejected(compiled, context, CommandRejectedException("Think of something here")) // STOPSHIP: 01/11/2021
+            metrics.incRejected()
             return
         }
 
@@ -141,25 +146,29 @@ class CommandManager(
             listener.onExecute(compiled, context)
 
             val start = System.currentTimeMillis()
-            command.execute(context)
+            metrics.record { command.execute(context) }
             val duration = start - System.currentTimeMillis()
 
             logger.debug("Command ${command::class.qualifiedName} has finished Executing in ${duration}ms")
             listener.onExecuted(compiled, context)
+            metrics.incExecuted()
 
         } catch (e: CommandRejectedException) {
             logger.debug("Command ${command::class.qualifiedName} has been Rejected", e)
             listener.onRejected(compiled, context, e)
+            metrics.incRejected()
             return
 
         } catch (e: CommandAbortedException) {
             logger.debug("Command ${command::class.qualifiedName} has been Aborted", e)
             listener.onAborted(compiled, context, e)
+            metrics.incAborted()
             return
 
         } catch (e: Throwable) {
             logger.error("Command ${command::class.qualifiedName} has failed!", e)
             listener.onFailed(compiled, context, e)
+            metrics.incFailed()
             return
 
         }

@@ -6,10 +6,11 @@ import dev.nanabell.jda.command.manager.compile.exception.CommandCompileExceptio
 import dev.nanabell.jda.command.manager.compile.exception.MissingCommandAnnotationException
 import dev.nanabell.jda.command.manager.compile.exception.RecursiveCommandPathException
 import dev.nanabell.jda.command.manager.compile.exception.SlashCommandDepthException
+import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
+import dev.nanabell.jda.command.manager.metrics.impl.SimpleCommandMetrics
 import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
 import gnu.trove.set.hash.TLongHashSet
 import io.micrometer.core.instrument.Metrics
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageType
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
@@ -21,7 +22,6 @@ import net.dv8tion.jda.internal.utils.config.AuthorizationConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
@@ -32,14 +32,11 @@ import java.util.concurrent.atomic.AtomicInteger
 @ExtendWith(MockitoExtension::class)
 internal class CommandManagerTest {
 
-    @BeforeEach
-    internal fun setUp() {
-        Metrics.addRegistry(SimpleMeterRegistry())
-    }
+    private var metrics: ICommandMetrics = SimpleCommandMetrics()
 
     @AfterEach
     internal fun tearDown() {
-        Metrics.globalRegistry.forEachMeter { Metrics.globalRegistry.remove(it) }
+        metrics.reset()
     }
 
     @Test
@@ -93,7 +90,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(DummyCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;unknown"))
-        assertEquals(1.0, Metrics.counter("command.unknown").count(), "Expected only 1 Command to be not Found")
+        assertEquals(1, metrics.getUnknown(), "Expected only 1 Command to be not Found")
     }
 
     @Test
@@ -120,7 +117,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(DummyCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;count", isBot = true))
-        assertEquals(0.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
+        assertEquals(0, metrics.getExecuted(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -128,7 +125,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(DummyCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;count", isWebhook = true))
-        assertEquals(0.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
+        assertEquals(0, metrics.getExecuted(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -136,7 +133,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(DummyCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;count", isSystem = true))
-        assertEquals(0.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
+        assertEquals(0, metrics.getExecuted(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -144,7 +141,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(GuildCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;guild", isGuild = true))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+        assertEquals(1, metrics.getExecuted(), "Expected 1 Executed Command")
     }
 
     @Test
@@ -152,7 +149,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(FailingCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;fail", isGuild = true))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "failed").count(), "Expected 1 Failed Command")
+        assertEquals(1, metrics.getFailed(), "Expected 1 Failed Command")
     }
 
     @Test
@@ -160,7 +157,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(AbortCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;abort", isGuild = true))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "aborted").count(), "Expected 1 Aborted Command")
+        assertEquals(1, metrics.getAborted(), "Expected 1 Aborted Command")
     }
 
     @Test
@@ -168,7 +165,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(AbortCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent("::abort", isGuild = true))
-        assertEquals(0.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 0 Executed Command")
+        assertEquals(0, metrics.getExecuted(), "Expected 0 Executed Command")
     }
 
     @Test
@@ -176,7 +173,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(RejectedCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;rejected", isGuild = true))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
+        assertEquals(1, metrics.getRejected(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -184,7 +181,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(SlashCommand())
 
         manager.onSlashCommand(getSlashCommandEvent("slash"))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+        assertEquals(1, metrics.getExecuted(), "Expected 1 Executed Command")
     }
 
     @Test
@@ -192,7 +189,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(SlashCommand())
 
         manager.onSlashCommand(getSlashCommandEvent("slash", isGuild = true))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+        assertEquals(1, metrics.getExecuted(), "Expected 1 Executed Command")
     }
 
     @Test
@@ -200,7 +197,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(GuildSlashCommand())
 
         manager.onSlashCommand(getSlashCommandEvent("guild", isGuild = false))
-        assertEquals(1.0, Metrics.counter("command.unknown").count(), "Expected 0 Executed Commands")
+        assertEquals(1, metrics.getUnknown(), "Expected 0 Executed Commands")
     }
 
     @Test
@@ -208,7 +205,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager()
 
         manager.onSlashCommand(getSlashCommandEvent("guild"))
-        assertEquals(1.0, Metrics.counter("command.unknown").count(), "Expected 1 Unknown Command")
+        assertEquals(1, metrics.getUnknown(), "Expected 1 Unknown Command")
     }
 
     @Test
@@ -216,7 +213,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(SubSlashCommand(), SlashCommand())
 
         manager.onSlashCommand(getSlashCommandEvent("slash", sub = "sub"))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+        assertEquals(1, metrics.getExecuted(), "Expected 1 Executed Command")
     }
 
     @Test
@@ -224,7 +221,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(SubSubSlashCommand(), SubSlashCommand(), SlashCommand())
 
         manager.onSlashCommand(getSlashCommandEvent("slash", sub = "subsub", group = "sub"))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+        assertEquals(1, metrics.getExecuted(), "Expected 1 Executed Command")
     }
 
     @Test
@@ -246,7 +243,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(OwnerOnlyCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;owner", userId = 100))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+        assertEquals(1, metrics.getExecuted(), "Expected 1 Executed Command")
     }
 
     @Test
@@ -254,7 +251,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(OwnerOnlyCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;owner"))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
+        assertEquals(1, metrics.getRejected(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -262,7 +259,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(OwnerOnlyCommand(), extraOwnerId = 0)
 
         manager.onMessageReceived(getMessageReceivedEvent(";;owner"))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+        assertEquals(1, metrics.getExecuted(), "Expected 1 Executed Command")
     }
 
     @Test
@@ -270,7 +267,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(UserRequireAdminCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;admin", isGuild = true, userId = 1))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
+        assertEquals(1, metrics.getRejected(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -278,7 +275,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(UserRequireAdminCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;admin", addPerm = true, isGuild = true, userId = 1))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
+        assertEquals(1, metrics.getExecuted(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -286,7 +283,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(BotRequireAdminCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;admin", isGuild = true, selfId = 1))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
+        assertEquals(1, metrics.getRejected(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -294,7 +291,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(BotRequireAdminCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;admin", addPerm = true, isGuild = true, selfId = 1))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
+        assertEquals(1, metrics.getExecuted(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -302,7 +299,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(IllegalDiscordPermissionCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;illegal"))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
+        assertEquals(1, metrics.getRejected(), "Expected 1 Rejected Command")
     }
 
     @Test
@@ -310,7 +307,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(IllegalDiscordPermissionCommand())
 
         manager.onMessageReceived(getMessageReceivedEvent(";;illegal", userId = 100))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count())
+        assertEquals(1, metrics.getExecuted())
     }
 
     private fun getMessageReceivedEvent(
@@ -422,6 +419,7 @@ internal class CommandManagerTest {
         if (extraOwnerId != -1L)
             builder.addOwnerId(extraOwnerId)
 
+        builder.setCommandMetrics(metrics)
         builder.setCommandProvider(StaticCommandProvider(commands.toList()))
         return builder.build()
     }
