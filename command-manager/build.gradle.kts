@@ -14,8 +14,9 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
-    compileOnly("org.jetbrains.kotlin:kotlin-reflect:1.5.31")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.31")
+
     compileOnly("io.micronaut:micronaut-context:3.1.3")
     implementation("io.micrometer:micrometer-core:1.7.5")
 
