@@ -273,13 +273,19 @@ internal class CommandManagerTest {
         isGuild: Boolean = false
     ): MessageReceivedEvent {
         val jda = JDAImpl(AuthorizationConfig(""))
+
         val user = UserImpl(0, jda)
         user.isBot = isBot
         user.isSystem = isSystem
 
+        val guild = GuildImpl(jda, 0)
+
+        jda.selfUser = SelfUserImpl(0, jda)
+        jda.entityBuilder.updateMemberCache(MemberImpl(guild, jda.selfUser))
+
         val msg = ReceivedMessage(
             0,
-            if (isGuild) TextChannelImpl(0, GuildImpl(jda, 0)) else PrivateChannelImpl(0, user),
+            if (isGuild) TextChannelImpl(0, guild) else PrivateChannelImpl(0, user),
             MessageType.DEFAULT,
             null,
             isWebhook,
@@ -291,7 +297,7 @@ internal class CommandManagerTest {
             content,
             "",
             user,
-            MemberImpl(GuildImpl(jda, 0), user),
+            MemberImpl(guild, user),
             null,
             OffsetDateTime.MAX,
             emptyList(),
@@ -323,6 +329,9 @@ internal class CommandManagerTest {
 
         if (isGuild) {
             val guild = GuildImpl(jda, 0)
+            jda.selfUser = SelfUserImpl(0, jda)
+            jda.entityBuilder.updateMemberCache(MemberImpl(guild, jda.selfUser))
+
             lenient.`when`(interaction.guild).thenReturn(guild)
             lenient.`when`(interaction.channel).thenReturn(TextChannelImpl(0, guild))
             lenient.`when`(interaction.member).thenReturn(MemberImpl(guild, user))
