@@ -1,13 +1,13 @@
 package dev.nanabell.jda.command.manager.command
 
 import dev.nanabell.jda.command.manager.command.annotation.OwnerOnly
-import dev.nanabell.jda.command.manager.context.ITextCommandContext
+import dev.nanabell.jda.command.manager.context.ICommandContext
 
 @OwnerOnly
 @Command("owner", "Owner Only Command Example")
-class OwnerOnlyCommand : ITextCommand {
+class OwnerOnlyCommand : ICommand{
 
-    override fun execute(context: ITextCommandContext) {
+    override fun execute(context: ICommandContext) {
         println("Owner Only Command Executed")
     }
 

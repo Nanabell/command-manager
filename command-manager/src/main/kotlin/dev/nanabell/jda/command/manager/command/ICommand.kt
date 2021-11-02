@@ -3,14 +3,13 @@ package dev.nanabell.jda.command.manager.command
 import dev.nanabell.jda.command.manager.command.exception.CommandException
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException
 import dev.nanabell.jda.command.manager.context.ICommandContext
-import kotlin.jvm.Throws
 
-sealed interface ICommand<T : ICommandContext> {
+interface ICommand {
 
     @Throws(CommandException::class)
-    fun execute(context: T)
+    fun execute(context: ICommandContext)
 
-    fun onReject(context: T, e: CommandRejectedException) {
+    fun onReject(context: ICommandContext, e: CommandRejectedException) {
         context.reply("Your Command has been rejected!\n`${e.message}`")
     }
 

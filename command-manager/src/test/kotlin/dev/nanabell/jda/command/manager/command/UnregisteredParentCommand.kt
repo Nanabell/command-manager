@@ -1,13 +1,13 @@
 package dev.nanabell.jda.command.manager.command
 
 import dev.nanabell.jda.command.manager.command.annotation.SubCommandOf
-import dev.nanabell.jda.command.manager.context.ITextCommandContext
+import dev.nanabell.jda.command.manager.context.ICommandContext
 
 @SubCommandOf(UnregisteredCommand::class)
 @Command("no-parent", "This Commands Parent does not Exist as a Command")
-class UnregisteredParentCommand : ITextCommand {
+class UnregisteredParentCommand : ICommand{
 
-    override fun execute(context: ITextCommandContext) {
+    override fun execute(context: ICommandContext) {
     }
 
 }

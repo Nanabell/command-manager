@@ -8,5 +8,6 @@ import jakarta.inject.Singleton
 annotation class Command(
     val name: String,
     val description: String,
+    val guildOnly: Boolean = false,
     val requirePermission: Boolean = true
 )

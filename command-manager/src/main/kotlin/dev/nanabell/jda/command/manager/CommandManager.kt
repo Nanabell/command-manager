@@ -1,18 +1,11 @@
 package dev.nanabell.jda.command.manager
 
-import dev.nanabell.jda.command.manager.command.IGuildSlashCommand
-import dev.nanabell.jda.command.manager.command.IGuildTextCommand
-import dev.nanabell.jda.command.manager.command.ISlashCommand
-import dev.nanabell.jda.command.manager.command.ITextCommand
 import dev.nanabell.jda.command.manager.command.exception.CommandAbortedException
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException
 import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
-import dev.nanabell.jda.command.manager.context.*
-import dev.nanabell.jda.command.manager.context.impl.GuildSlashCommandContext
-import dev.nanabell.jda.command.manager.context.impl.GuildTextCommandContext
-import dev.nanabell.jda.command.manager.context.impl.SlashCommandContext
-import dev.nanabell.jda.command.manager.context.impl.TextCommandContext
+import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.context.impl.CommandContext
 import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
 import dev.nanabell.jda.command.manager.exception.MissingParentException
 import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
@@ -52,7 +45,7 @@ class CommandManager(
 
             val compiled = compiler.compile(command)
             when (compiled.isSlashCommand) {
-                false  -> textCommands.add(compiled)
+                false -> textCommands.add(compiled)
                 true -> slashCommands.add(compiled)
             }
         }
@@ -86,14 +79,19 @@ class CommandManager(
         // TODO: Ensure Prefix has no Invalid Characters
     }
 
-    private fun updateCommandPath(compiled: CompiledCommand, list: List<CompiledCommand>, seen: MutableList<KClass<*>>): String {
+    private fun updateCommandPath(
+        compiled: CompiledCommand,
+        list: List<CompiledCommand>,
+        seen: MutableList<KClass<*>>
+    ): String {
         if (seen.contains(compiled.command::class)) {
             throw CommandPathLoopException(compiled)
         }
         seen.add(compiled.command::class)
 
         if (compiled.subcommandOf == null) return compiled.commandPath
-        val parent = list.firstOrNull { it.command::class == compiled.subcommandOf } ?: throw MissingParentException(compiled)
+        val parent =
+            list.firstOrNull { it.command::class == compiled.subcommandOf } ?: throw MissingParentException(compiled)
         val parentPath = updateCommandPath(parent, list, seen)
 
         compiled.commandPath = "$parentPath/${compiled.name}"
@@ -105,7 +103,13 @@ class CommandManager(
 
         // Ignore Bots, System & Webhook Messages
         if (event.author.isBot || event.author.isSystem || event.isWebhookMessage) {
-            logger.trace("Ignoring Message {}. Bot={}, System={}, Webhook={}", event.messageIdLong, event.author.isBot, event.author.isSystem, event.isWebhookMessage)
+            logger.trace(
+                "Ignoring Message {}. Bot={}, System={}, Webhook={}",
+                event.messageIdLong,
+                event.author.isBot,
+                event.author.isSystem,
+                event.isWebhookMessage
+            )
             return
         }
 
@@ -139,14 +143,10 @@ class CommandManager(
             if (currentPath != path) currentPath += "/$path"
 
             val current = textCommands.firstOrNull {
-                (it.isGuildCommand == event.isFromGuild || !it.isGuildCommand) && it.commandPath == currentPath
-            }
+                (it.guildOnly == event.isFromGuild || !it.guildOnly) && it.commandPath == currentPath
+            } ?: break
+
             logger.trace("Parsed Command: {}", current)
-
-            if (current == null) {
-                break
-            }
-
             compiled = current
         }
 
@@ -158,16 +158,14 @@ class CommandManager(
 
         val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
 
-        // Execute Command
-        val context = if (event.isFromGuild) GuildTextCommandContext(event, ownerIds, arguments) else TextCommandContext(event, ownerIds, arguments)
-        executeCommand(compiled, context)
+        executeCommand(compiled, CommandContext(event, ownerIds, arguments))
     }
 
     override fun onSlashCommand(event: SlashCommandEvent) {
         // TODO: Move this out of event Thread
 
         logger.trace("Received Slash Command: $event")
-        val compiled = slashCommands.firstOrNull { (it.isGuildCommand == event.isFromGuild || !it.isGuildCommand) && it.commandPath == event.commandPath }
+        val compiled = slashCommands.firstOrNull { (it.guildOnly == event.isFromGuild || !it.guildOnly) && it.commandPath == event.commandPath }
 
         if (compiled == null) {
             logger.debug("Unable to find Command with Path: /${event.commandPath}")
@@ -175,8 +173,7 @@ class CommandManager(
             return
         }
 
-        val context = if (event.isFromGuild) GuildSlashCommandContext(event, ownerIds) else SlashCommandContext(event, ownerIds)
-        executeCommand(compiled, context)
+        executeCommand(compiled, CommandContext(event, ownerIds))
     }
 
     private fun executeCommand(compiled: CompiledCommand, context: ICommandContext) {
@@ -192,14 +189,9 @@ class CommandManager(
             listener.onExecute(compiled, context)
 
             val start = System.currentTimeMillis()
-            when (command) {
-                is ITextCommand -> command.execute(context as ITextCommandContext)
-                is IGuildTextCommand -> command.execute(context as IGuildTextCommandContext)
-                is ISlashCommand -> command.execute(context as ISlashCommandContext)
-                is IGuildSlashCommand -> command.execute(context as IGuildSlashCommandContext)
-            }
-
+            command.execute(context)
             val duration = start - System.currentTimeMillis()
+
             logger.debug("Command ${command::class.qualifiedName} has finished Executing in ${duration}ms")
             listener.onExecuted(compiled, context)
 

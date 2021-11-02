@@ -1,13 +1,13 @@
 package dev.nanabell.jda.command.manager.command
 
 import dev.nanabell.jda.command.manager.command.annotation.SubCommandOf
-import dev.nanabell.jda.command.manager.context.ITextCommandContext
+import dev.nanabell.jda.command.manager.context.ICommandContext
 
 @SubCommandOf(DummyCommand::class)
 @Command("sub", "Sub Command for Example Command")
-class SubCommand : ITextCommand  {
+class SubCommand : ICommand {
 
-    override fun execute(context: ITextCommandContext) {
+    override fun execute(context: ICommandContext) {
     }
 
 }

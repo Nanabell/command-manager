@@ -3,7 +3,6 @@ package dev.nanabell.jda.command.manager
 import dev.nanabell.jda.command.manager.command.*
 import dev.nanabell.jda.command.manager.command.slash.*
 import dev.nanabell.jda.command.manager.compile.exception.CommandCompileException
-import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
 import dev.nanabell.jda.command.manager.exception.MissingParentException
 import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
@@ -418,7 +417,7 @@ internal class CommandManagerTest {
         return SlashCommandEvent(jda, -1, interaction)
     }
 
-    private fun buildCommandManager(vararg commands: ICommand<out ICommandContext>, prefix: String = ";;", ownerId: Long = 100, extraOwnerId: Long = -1): CommandManager {
+    private fun buildCommandManager(vararg commands: ICommand, prefix: String = ";;", ownerId: Long = 100, extraOwnerId: Long = -1): CommandManager {
         val builder = CommandManagerBuilder(prefix, ownerId)
         if (extraOwnerId != -1L)
             builder.addOwnerId(extraOwnerId)

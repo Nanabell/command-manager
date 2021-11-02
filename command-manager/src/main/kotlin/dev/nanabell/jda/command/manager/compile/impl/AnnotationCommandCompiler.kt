@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
 
 class AnnotationCommandCompiler : ICommandCompiler {
 
-    override fun compile(command: ICommand<out ICommandContext>): CompiledCommand {
+    override fun compile(command: ICommand): CompiledCommand {
         if (!command::class.java.isAnnotationPresent(Command::class.java)) {
             throw CommandCompileException("Missing required @Command Annotation from class: ${command::class.qualifiedName}!")
         }
@@ -20,7 +20,7 @@ class AnnotationCommandCompiler : ICommandCompiler {
         val commandAnnotation = command::class.java.getAnnotation(Command::class.java)
         val ownerOnly = command::class.java.isAnnotationPresent(OwnerOnly::class.java)
 
-        var subCommandOf: KClass<out ICommand<out ICommandContext>>? = null
+        var subCommandOf: KClass<out ICommand>? = null
         if (command::class.java.isAnnotationPresent(SubCommandOf::class.java)) {
             subCommandOf = command::class.java.getAnnotation(SubCommandOf::class.java).subCommandOf
         }
@@ -39,11 +39,12 @@ class AnnotationCommandCompiler : ICommandCompiler {
             command,
             commandAnnotation.name,
             commandAnnotation.description,
+            commandAnnotation.guildOnly,
+            commandAnnotation.requirePermission,
             subCommandOf,
             ownerOnly,
             userPermissions,
-            botPermissions,
-            commandAnnotation.requirePermission
+            botPermissions
         )
     }
 

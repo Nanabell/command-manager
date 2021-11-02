@@ -2,18 +2,21 @@ package dev.nanabell.jda.command.manager.context
 
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.interactions.Interaction
 import java.util.*
 
 interface ICommandContext {
 
     val uuid: UUID
+    val ownerIds: Set<Long>
 
     val author: User
     val member: Member?
     val channel: MessageChannel
     val guild: Guild?
 
-    val ownerIds: Set<Long>
+    val arguments: Array<String>
+    val interaction: Interaction?
 
     val selfUser: SelfUser
         get() = author.jda.selfUser
