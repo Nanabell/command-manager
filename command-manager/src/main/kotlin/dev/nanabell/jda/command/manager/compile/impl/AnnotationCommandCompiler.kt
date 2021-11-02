@@ -2,10 +2,7 @@ package dev.nanabell.jda.command.manager.compile.impl
 
 import dev.nanabell.jda.command.manager.command.Command
 import dev.nanabell.jda.command.manager.command.ICommand
-import dev.nanabell.jda.command.manager.command.annotation.BotPermission
-import dev.nanabell.jda.command.manager.command.annotation.OwnerOnly
-import dev.nanabell.jda.command.manager.command.annotation.SubCommandOf
-import dev.nanabell.jda.command.manager.command.annotation.UserPermission
+import dev.nanabell.jda.command.manager.command.annotation.*
 import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.compile.exception.CommandCompileException
@@ -45,7 +42,8 @@ class AnnotationCommandCompiler : ICommandCompiler {
             subCommandOf,
             ownerOnly,
             userPermissions,
-            botPermissions
+            botPermissions,
+            commandAnnotation.requirePermission
         )
     }
 

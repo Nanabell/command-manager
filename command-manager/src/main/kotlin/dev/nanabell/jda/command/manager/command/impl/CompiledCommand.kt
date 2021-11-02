@@ -16,6 +16,7 @@ data class CompiledCommand(
     val ownerOnly: Boolean,
     val userPermission: Array<Permission>,
     val botPermission: Array<Permission>,
+    val requirePermission: Boolean
 ) {
 
     var commandPath: String = name
@@ -41,6 +42,7 @@ data class CompiledCommand(
         if (ownerOnly != other.ownerOnly) return false
         if (!userPermission.contentEquals(other.userPermission)) return false
         if (!botPermission.contentEquals(other.botPermission)) return false
+        if (requirePermission != other.requirePermission) return false
         if (commandPath != other.commandPath) return false
         if (isGuildCommand != other.isGuildCommand) return false
         if (isSlashCommand != other.isSlashCommand) return false
@@ -52,13 +54,15 @@ data class CompiledCommand(
         var result = command.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + description.hashCode()
-        result = 31 * result + subcommandOf.hashCode()
+        result = 31 * result + (subcommandOf?.hashCode() ?: 0)
         result = 31 * result + ownerOnly.hashCode()
         result = 31 * result + userPermission.contentHashCode()
         result = 31 * result + botPermission.contentHashCode()
+        result = 31 * result + requirePermission.hashCode()
         result = 31 * result + commandPath.hashCode()
         result = 31 * result + isGuildCommand.hashCode()
         result = 31 * result + isSlashCommand.hashCode()
         return result
     }
+
 }
