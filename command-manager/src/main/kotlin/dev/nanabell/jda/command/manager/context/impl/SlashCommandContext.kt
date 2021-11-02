@@ -9,9 +9,10 @@ import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import java.util.*
 
-open class SlashCommandContext(event: SlashCommandEvent) : CommandContext(
+open class SlashCommandContext(event: SlashCommandEvent, ownerIds: Set<Long>) : CommandContext(
     event.user,
     event.member,
     event.channel,
-    event.guild
+    event.guild,
+    ownerIds
 ), ISlashCommandContext

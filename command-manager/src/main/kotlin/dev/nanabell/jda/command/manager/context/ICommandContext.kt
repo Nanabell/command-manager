@@ -13,6 +13,8 @@ interface ICommandContext {
     val channel: MessageChannel
     val guild: Guild?
 
+    val ownerIds: Set<Long>
+
     val selfUser: SelfUser
         get() = author.jda.selfUser
 
@@ -25,4 +27,5 @@ interface ICommandContext {
     fun reply(message: String)
 
     fun hasPermission(member: Member, vararg permissions: Permission): Boolean
+    fun hasPermission(member: Member, guildChannel: GuildChannel, vararg permissions: Permission): Boolean
 }

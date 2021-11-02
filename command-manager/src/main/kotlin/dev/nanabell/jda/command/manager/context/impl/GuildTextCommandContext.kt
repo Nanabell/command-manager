@@ -6,7 +6,8 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
-class GuildTextCommandContext(event: MessageReceivedEvent, arguments: Array<String>) : TextCommandContext(event, arguments), IGuildTextCommandContext {
+class GuildTextCommandContext(event: MessageReceivedEvent, ownerIds: Set<Long>, arguments: Array<String>) :
+    TextCommandContext(event, ownerIds, arguments), IGuildTextCommandContext {
 
     override val channel: TextChannel = event.textChannel
     override val guild: Guild = event.guild

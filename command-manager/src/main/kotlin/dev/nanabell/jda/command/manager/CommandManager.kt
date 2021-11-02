@@ -1,13 +1,18 @@
 package dev.nanabell.jda.command.manager
 
-import dev.nanabell.jda.command.manager.command.*
+import dev.nanabell.jda.command.manager.command.IGuildSlashCommand
+import dev.nanabell.jda.command.manager.command.IGuildTextCommand
+import dev.nanabell.jda.command.manager.command.ISlashCommand
+import dev.nanabell.jda.command.manager.command.ITextCommand
 import dev.nanabell.jda.command.manager.command.exception.CommandAbortedException
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException
 import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
-import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.context.*
-import dev.nanabell.jda.command.manager.context.impl.*
+import dev.nanabell.jda.command.manager.context.impl.GuildSlashCommandContext
+import dev.nanabell.jda.command.manager.context.impl.GuildTextCommandContext
+import dev.nanabell.jda.command.manager.context.impl.SlashCommandContext
+import dev.nanabell.jda.command.manager.context.impl.TextCommandContext
 import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
 import dev.nanabell.jda.command.manager.exception.MissingParentException
 import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
@@ -23,6 +28,7 @@ class CommandManager(
     private val prefix: String,
     private val allowMention: Boolean = false,
     private val autoRegisterCommands: Boolean = false,
+    private val ownerIds: Set<Long>,
     private val listener: ICommandListener,
     provider: ICommandProvider,
     compiler: ICommandCompiler,
@@ -152,7 +158,7 @@ class CommandManager(
         val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
 
         // Execute Command
-        val context = if (event.isFromGuild) GuildTextCommandContext(event, arguments) else TextCommandContext(event, arguments)
+        val context = if (event.isFromGuild) GuildTextCommandContext(event, ownerIds, arguments) else TextCommandContext(event, ownerIds, arguments)
         executeCommand(compiled, context)
     }
 
@@ -168,7 +174,7 @@ class CommandManager(
             return
         }
 
-        val context = if (event.isFromGuild) GuildSlashCommandContext(event) else SlashCommandContext(event)
+        val context = if (event.isFromGuild) GuildSlashCommandContext(event, ownerIds) else SlashCommandContext(event, ownerIds)
         executeCommand(compiled, context)
     }
 

@@ -13,9 +13,9 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 
 @Suppress("unused")
-class CommandManagerBuilder(private var prefix: String, private var ownerId: Long) {
+class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
 
-    private var coOwnerIds: MutableSet<Long> = mutableSetOf()
+    private var ownerIds: MutableSet<Long> = mutableSetOf(ownerId)
     private var allowMention: Boolean = false
     private var autoRegister: Boolean = false
 
@@ -38,7 +38,7 @@ class CommandManagerBuilder(private var prefix: String, private var ownerId: Lon
             resolver = DefaultPredicateResolver(ownerId, coOwnerIds)
         }
 
-        return CommandManager(prefix, allowMention, autoRegister, listener, provider, compiler, resolver)
+        return CommandManager(prefix, allowMention, autoRegister, ownerIds, listener, provider, compiler, resolver)
     }
 
     fun setPrefix(prefix: String): CommandManagerBuilder {
@@ -46,18 +46,13 @@ class CommandManagerBuilder(private var prefix: String, private var ownerId: Lon
         return this
     }
 
-    fun setOwnerId(ownerId: Long): CommandManagerBuilder {
-        this.ownerId = ownerId
+    fun addOwnerId(ownerId: Long): CommandManagerBuilder {
+        this.ownerIds.add(ownerId)
         return this
     }
 
-    fun setCoOwnerIds(coOwnerIds: Set<Long>): CommandManagerBuilder {
-        this.coOwnerIds = coOwnerIds.toMutableSet()
-        return this
-    }
-
-    fun setCoOwnerIds(vararg coOwnerIds: Long): CommandManagerBuilder {
-        this.coOwnerIds = coOwnerIds.toMutableSet()
+    fun removeOwnerId(ownerId: Long): CommandManagerBuilder {
+        this.ownerIds.remove(ownerId)
         return this
     }
 
