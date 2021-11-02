@@ -7,6 +7,7 @@ import kotlin.reflect.KClass
 
 data class CompiledCommand(
     val command: ICommand,
+    val commandPath: String,
     val name: String,
     val description: String,
     val guildOnly: Boolean,
@@ -17,8 +18,6 @@ data class CompiledCommand(
     val botPermission: Array<Permission>,
 ) {
     val isSlashCommand: Boolean = command is ISlashCommand
-
-    var commandPath: String = name
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -57,6 +56,8 @@ data class CompiledCommand(
     }
 
     override fun toString(): String {
-        return "${command::class.qualifiedName} [path=/$commandPath, guildOnly=$guildOnly, isSlash=$isSlashCommand]"
+        return "${command::class.simpleName}(commandPath='/$commandPath', name='$name', description='$description', guildOnly=$guildOnly, requirePermission=$requirePermission, subcommandOf=$subcommandOf, ownerOnly=$ownerOnly, userPermission=${userPermission.contentToString()}, botPermission=${botPermission.contentToString()}, isSlashCommand=$isSlashCommand)"
     }
+
+
 }

@@ -6,9 +6,6 @@ import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.context.impl.CommandContext
-import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
-import dev.nanabell.jda.command.manager.exception.MissingParentException
-import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
 import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.permission.IPermissionHandler
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
@@ -16,7 +13,6 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
-import kotlin.reflect.KClass
 
 class CommandManager(
     private val prefix: String,
@@ -39,10 +35,9 @@ class CommandManager(
         logger.info("Initializing ${this::class.simpleName}")
 
         val commands = provider.provide()
-        logger.debug("CommandProvider found ${commands.size} command/s")
-        for (command in commands) {
-            logger.trace("Compiling Command ${command::class.simpleName}")
+        logger.debug("Compiling ${commands.size} command/s")
 
+        for (command in commands) {
             val compiled = compiler.compile(command)
             when (compiled.isSlashCommand) {
                 false -> textCommands.add(compiled)
@@ -50,52 +45,9 @@ class CommandManager(
             }
         }
 
-        logger.info("Compiled ${textCommands.size} Text Command/s and ${slashCommands.size} Slash Command/s")
-
-        // Build CommandPath Tree
-        logger.debug("Building Text Command Paths")
-        for (textCommand in textCommands) {
-            logger.trace("Building CommandPath for Command: ${textCommand.name}")
-            updateCommandPath(textCommand, textCommands, mutableListOf())
-            logger.trace("CommandPath for Command: ${textCommand.name} = /${textCommand.commandPath}")
-        }
-
-        logger.debug("Building Slash Command Paths")
-        for (slashCommand in slashCommands) {
-            logger.trace("Building CommandPath for Command: ${slashCommand.name}")
-            updateCommandPath(slashCommand, slashCommands, mutableListOf())
-            logger.trace("CommandPath for Command: ${slashCommand.name} = /${slashCommand.commandPath}")
-        }
-
-        // Ensure Slash Commands don't have a Path longer than 3 (Discord Limitation!)
-        for (slashCommand in slashCommands) {
-            val depth = slashCommand.commandPath.count { it == '/' }
-            if (depth > 2) {
-                throw SlashCommandDepthException(depth, slashCommand.command)
-            }
-        }
-
         // TODO: Register Slash Commands if enabled
         // TODO: Ensure Prefix has no Invalid Characters
-    }
-
-    private fun updateCommandPath(
-        compiled: CompiledCommand,
-        list: List<CompiledCommand>,
-        seen: MutableList<KClass<*>>
-    ): String {
-        if (seen.contains(compiled.command::class)) {
-            throw CommandPathLoopException(compiled)
-        }
-        seen.add(compiled.command::class)
-
-        if (compiled.subcommandOf == null) return compiled.commandPath
-        val parent =
-            list.firstOrNull { it.command::class == compiled.subcommandOf } ?: throw MissingParentException(compiled)
-        val parentPath = updateCommandPath(parent, list, seen)
-
-        compiled.commandPath = "$parentPath/${compiled.name}"
-        return compiled.commandPath
+        logger.info("Finished ${this::class.simpleName} Initialization with ${getCommands().size} Command/s")
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {

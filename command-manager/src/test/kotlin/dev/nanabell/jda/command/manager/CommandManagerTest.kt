@@ -3,9 +3,9 @@ package dev.nanabell.jda.command.manager
 import dev.nanabell.jda.command.manager.command.*
 import dev.nanabell.jda.command.manager.command.slash.*
 import dev.nanabell.jda.command.manager.compile.exception.CommandCompileException
-import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
-import dev.nanabell.jda.command.manager.exception.MissingParentException
-import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
+import dev.nanabell.jda.command.manager.compile.exception.MissingCommandAnnotationException
+import dev.nanabell.jda.command.manager.compile.exception.RecursiveCommandPathException
+import dev.nanabell.jda.command.manager.compile.exception.SlashCommandDepthException
 import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
 import gnu.trove.set.hash.TLongHashSet
 import io.micrometer.core.instrument.Metrics
@@ -68,14 +68,14 @@ internal class CommandManagerTest {
 
     @Test
     internal fun `Test Loading recursive Commands`() {
-        assertThrows(CommandPathLoopException::class.java) {
+        assertThrows(RecursiveCommandPathException::class.java) {
            buildCommandManager(RecursiveCommand1(), RecursiveCommand2())
         }
     }
 
     @Test
     internal fun `Test Loading Unregistered Parent Command`() {
-        assertThrows(MissingParentException::class.java) {
+        assertThrows(MissingCommandAnnotationException::class.java) {
            buildCommandManager(UnregisteredParentCommand())
         }
     }
