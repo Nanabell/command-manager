@@ -16,7 +16,8 @@ import dev.nanabell.jda.command.manager.context.impl.TextCommandContext
 import dev.nanabell.jda.command.manager.exception.CommandPathLoopException
 import dev.nanabell.jda.command.manager.exception.MissingParentException
 import dev.nanabell.jda.command.manager.exception.SlashCommandDepthException
-import dev.nanabell.jda.command.manager.predicate.IPredicateResolver
+import dev.nanabell.jda.command.manager.listener.ICommandListener
+import dev.nanabell.jda.command.manager.permission.IPermissionHandler
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -32,7 +33,7 @@ class CommandManager(
     private val listener: ICommandListener,
     provider: ICommandProvider,
     compiler: ICommandCompiler,
-    private val resolver: IPredicateResolver
+    private val permissionHandler: IPermissionHandler
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
@@ -181,7 +182,7 @@ class CommandManager(
     private fun executeCommand(compiled: CompiledCommand, context: ICommandContext) {
         val command = compiled.command
 
-        if (!resolver.resolve(compiled, context)) {
+        if (!permissionHandler.handle(compiled, context)) {
             listener.onRejected(compiled, context, CommandRejectedException("Think of something here")) // STOPSHIP: 01/11/2021
             return
         }

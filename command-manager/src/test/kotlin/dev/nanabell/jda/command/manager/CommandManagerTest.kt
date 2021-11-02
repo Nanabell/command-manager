@@ -11,6 +11,7 @@ import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
 import gnu.trove.set.hash.TLongHashSet
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageType
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -245,24 +246,72 @@ internal class CommandManagerTest {
     internal fun `Test Owner Only Command as Owner Executes Successful`() {
         val manager = buildCommandManager(OwnerOnlyCommand())
 
-        manager.onMessageReceived(getMessageReceivedEvent(";;owner",))
+        manager.onMessageReceived(getMessageReceivedEvent(";;owner", userId = 100))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
     }
 
     @Test
     internal fun `Test Owner Only Command as non Owner does not Execute`() {
-        val manager = buildCommandManager(OwnerOnlyCommand(), ownerId = 1)
+        val manager = buildCommandManager(OwnerOnlyCommand())
 
-        manager.onMessageReceived(getMessageReceivedEvent(";;owner",))
-        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Executed Command")
+        manager.onMessageReceived(getMessageReceivedEvent(";;owner"))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
     }
 
     @Test
     internal fun `Test Owner Only Command as CoOwner Executes Successful`() {
-        val manager = buildCommandManager(OwnerOnlyCommand(), ownerId = 1, extraOwnerId = 0)
+        val manager = buildCommandManager(OwnerOnlyCommand(), extraOwnerId = 0)
 
-        manager.onMessageReceived(getMessageReceivedEvent(";;owner",))
+        manager.onMessageReceived(getMessageReceivedEvent(";;owner"))
         assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Executed Command")
+    }
+
+    @Test
+    internal fun `Test UserPermission Command fails without User Permissions`() {
+        val manager = buildCommandManager(UserRequireAdminCommand())
+
+        manager.onMessageReceived(getMessageReceivedEvent(";;admin", isGuild = true, userId = 1))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
+    }
+
+    @Test
+    internal fun `Test UserPermission Command succeeds with User Permissions`() {
+        val manager = buildCommandManager(UserRequireAdminCommand())
+
+        manager.onMessageReceived(getMessageReceivedEvent(";;admin", addPerm = true, isGuild = true, userId = 1))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
+    }
+
+    @Test
+    internal fun `Test BotPermission Command fails without Bot Permissions`() {
+        val manager = buildCommandManager(BotRequireAdminCommand())
+
+        manager.onMessageReceived(getMessageReceivedEvent(";;admin", isGuild = true, selfId = 1))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
+    }
+
+    @Test
+    internal fun `Test BotPermission Command succeeds with Bot Permissions`() {
+        val manager = buildCommandManager(BotRequireAdminCommand())
+
+        manager.onMessageReceived(getMessageReceivedEvent(";;admin", addPerm = true, isGuild = true, selfId = 1))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count(), "Expected 1 Rejected Command")
+    }
+
+    @Test
+    internal fun `Test Global Command fails when paired with Discord Permission Requirement`() {
+        val manager = buildCommandManager(IllegalDiscordPermissionCommand())
+
+        manager.onMessageReceived(getMessageReceivedEvent(";;illegal"))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "rejected").count(), "Expected 1 Rejected Command")
+    }
+
+    @Test
+    internal fun `Test Owner Override overrides Permission Checks`() {
+        val manager = buildCommandManager(IllegalDiscordPermissionCommand())
+
+        manager.onMessageReceived(getMessageReceivedEvent(";;illegal", userId = 100))
+        assertEquals(1.0, Metrics.counter("command.executed", "status", "success").count())
     }
 
     private fun getMessageReceivedEvent(
@@ -270,18 +319,30 @@ internal class CommandManagerTest {
         isBot: Boolean = false,
         isWebhook: Boolean = false,
         isSystem: Boolean = false,
-        isGuild: Boolean = false
+        isGuild: Boolean = false,
+        addPerm: Boolean = false,
+        userId: Long = 0,
+        selfId: Long = 0
     ): MessageReceivedEvent {
         val jda = JDAImpl(AuthorizationConfig(""))
 
-        val user = UserImpl(0, jda)
+        val user = UserImpl(userId, jda)
         user.isBot = isBot
         user.isSystem = isSystem
 
         val guild = GuildImpl(jda, 0)
+        jda.selfUser = SelfUserImpl(selfId, jda)
 
-        jda.selfUser = SelfUserImpl(0, jda)
-        jda.entityBuilder.updateMemberCache(MemberImpl(guild, jda.selfUser))
+        val adminRole = RoleImpl(1, guild)
+        adminRole.setRawPermissions(Permission.getRaw(Permission.ADMINISTRATOR))
+
+        val selfMember = MemberImpl(guild, jda.selfUser)
+        if (addPerm) selfMember.roleSet.add(adminRole)
+        jda.entityBuilder.updateMemberCache(selfMember)
+
+        val member = MemberImpl(guild, user)
+        guild.publicRole = RoleImpl(0, guild)
+        if (addPerm) member.roleSet.add(adminRole)
 
         val msg = ReceivedMessage(
             0,
@@ -297,7 +358,7 @@ internal class CommandManagerTest {
             content,
             "",
             user,
-            MemberImpl(guild, user),
+            member,
             null,
             OffsetDateTime.MAX,
             emptyList(),
@@ -314,11 +375,14 @@ internal class CommandManagerTest {
     private fun getSlashCommandEvent(
         name: String,
         isGuild: Boolean = false,
+        addPerm: Boolean = false,
         group: String? = null,
-        sub: String? = null
+        sub: String? = null,
+        userId: Long = 0,
+        selfId: Long = 0
     ): SlashCommandEvent {
         val jda = JDAImpl(AuthorizationConfig(""))
-        val user = UserImpl(0, jda)
+        val user = UserImpl(userId, jda)
 
         val lenient = Mockito.lenient()
         val interaction = Mockito.mock(CommandInteractionImpl::class.java)
@@ -329,12 +393,24 @@ internal class CommandManagerTest {
 
         if (isGuild) {
             val guild = GuildImpl(jda, 0)
-            jda.selfUser = SelfUserImpl(0, jda)
-            jda.entityBuilder.updateMemberCache(MemberImpl(guild, jda.selfUser))
+            jda.selfUser = SelfUserImpl(selfId, jda)
+
+            val adminRole = RoleImpl(1, guild)
+            adminRole.setRawPermissions(Permission.getRaw(Permission.ADMINISTRATOR))
+
+            val selfMember = MemberImpl(guild, jda.selfUser)
+            if (addPerm) selfMember.roleSet.add(adminRole)
+            jda.entityBuilder.updateMemberCache(selfMember)
+
+            val member = MemberImpl(guild, user)
+            guild.publicRole = RoleImpl(0, guild)
+
+            if (addPerm)
+                member.roleSet.add(adminRole)
 
             lenient.`when`(interaction.guild).thenReturn(guild)
             lenient.`when`(interaction.channel).thenReturn(TextChannelImpl(0, guild))
-            lenient.`when`(interaction.member).thenReturn(MemberImpl(guild, user))
+            lenient.`when`(interaction.member).thenReturn(member)
         } else {
             lenient.`when`(interaction.channel).thenReturn(PrivateChannelImpl(0, user))
         }
@@ -342,7 +418,7 @@ internal class CommandManagerTest {
         return SlashCommandEvent(jda, -1, interaction)
     }
 
-    private fun buildCommandManager(vararg commands: ICommand<out ICommandContext>, prefix: String = ";;", ownerId: Long = 0, extraOwnerId: Long = -1): CommandManager {
+    private fun buildCommandManager(vararg commands: ICommand<out ICommandContext>, prefix: String = ";;", ownerId: Long = 100, extraOwnerId: Long = -1): CommandManager {
         val builder = CommandManagerBuilder(prefix, ownerId)
         if (extraOwnerId != -1L)
             builder.addOwnerId(extraOwnerId)

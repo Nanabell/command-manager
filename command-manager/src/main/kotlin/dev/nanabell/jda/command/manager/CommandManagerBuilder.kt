@@ -5,8 +5,8 @@ import dev.nanabell.jda.command.manager.compile.impl.AnnotationCommandCompiler
 import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.listener.impl.CompositeCommandListener
 import dev.nanabell.jda.command.manager.listener.impl.MetricCommandListener
-import dev.nanabell.jda.command.manager.predicate.IPredicateResolver
-import dev.nanabell.jda.command.manager.predicate.impl.DefaultPredicateResolver
+import dev.nanabell.jda.command.manager.permission.IPermissionHandler
+import dev.nanabell.jda.command.manager.permission.impl.DefaultPermissionHandlerBuilder
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
 import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
 import io.micrometer.core.instrument.MeterRegistry
@@ -23,8 +23,7 @@ class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
     private var listener: CompositeCommandListener = CompositeCommandListener()
     private var provider: ICommandProvider = StaticCommandProvider(emptyList())
     private var compiler: ICommandCompiler = AnnotationCommandCompiler()
-
-    private var resolver: IPredicateResolver? = null
+    private var permissionHandler: IPermissionHandler? = null
 
     private var registerMetrics: Boolean = true
 
@@ -33,12 +32,9 @@ class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
         if (registerMetrics)
             listener.registerListener(MetricCommandListener(registry))
 
-        var resolver = this.resolver
-        if (resolver == null) {
-            resolver = DefaultPredicateResolver(ownerId, coOwnerIds)
-        }
+        val permissionHandler = this.permissionHandler ?: DefaultPermissionHandlerBuilder().build()
 
-        return CommandManager(prefix, allowMention, autoRegister, ownerIds, listener, provider, compiler, resolver)
+        return CommandManager(prefix, allowMention, autoRegister, ownerIds, listener, provider, compiler, permissionHandler)
     }
 
     fun setPrefix(prefix: String): CommandManagerBuilder {
@@ -93,6 +89,11 @@ class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
 
     fun setCommandCompiler(compiler: ICommandCompiler): CommandManagerBuilder {
         this.compiler = compiler
+        return this
+    }
+
+    fun setPermissionHandler(permissionHandler: IPermissionHandler): CommandManagerBuilder {
+        this.permissionHandler = permissionHandler
         return this
     }
 }
