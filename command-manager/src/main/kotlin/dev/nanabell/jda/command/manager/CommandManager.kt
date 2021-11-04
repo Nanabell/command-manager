@@ -7,8 +7,10 @@ import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.context.ICommandContextBuilder
-import dev.nanabell.jda.command.manager.event.MessageReceivedEvent
-import dev.nanabell.jda.command.manager.event.SlashCommandEvent
+import dev.nanabell.jda.command.manager.event.IEventListener
+import dev.nanabell.jda.command.manager.event.IEventMediator
+import dev.nanabell.jda.command.manager.event.impl.MessageReceivedEvent
+import dev.nanabell.jda.command.manager.event.impl.SlashCommandEvent
 import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import dev.nanabell.jda.command.manager.permission.IPermissionHandler
@@ -25,8 +27,9 @@ class CommandManager(
     compiler: ICommandCompiler,
     private val permissionHandler: IPermissionHandler,
     private val metrics: ICommandMetrics,
-    private val contextBuilder: ICommandContextBuilder
-) {
+    private val contextBuilder: ICommandContextBuilder,
+    eventMediator: IEventMediator
+) : IEventListener {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
 
@@ -51,10 +54,13 @@ class CommandManager(
 
         // TODO: Register Slash Commands if enabled
         // TODO: Ensure Prefix has no Invalid Characters
+        logger.debug("Registering self at event Mediator: ${eventMediator::class.simpleName}")
+        eventMediator.registerCommandManager(this)
+
         logger.info("Finished ${this::class.simpleName} Initialization with ${getCommands().size} Command/s")
     }
 
-    fun onMessageReceived(event: MessageReceivedEvent) {
+    override fun onMessageReceived(event: MessageReceivedEvent) {
         // TODO: Move this out of event Thread
 
         // Ignore Bots, System & Webhook Messages
@@ -116,7 +122,7 @@ class CommandManager(
         executeCommand(compiled, contextBuilder.fromMessage(event, ownerIds, arguments))
     }
 
-    fun onSlashCommand(event: SlashCommandEvent) {
+    override fun onSlashCommand(event: SlashCommandEvent) {
         // TODO: Move this out of event Thread
 
         logger.trace("Received Slash Command: $event")

@@ -1,4 +1,4 @@
-package dev.nanabell.jda.command.manager.event
+package dev.nanabell.jda.command.manager.event.impl
 
 data class SlashCommandEvent(
     val commandPath: String,

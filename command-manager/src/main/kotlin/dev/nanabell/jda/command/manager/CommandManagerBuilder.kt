@@ -3,6 +3,8 @@ package dev.nanabell.jda.command.manager
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.compile.impl.AnnotationCommandCompiler
 import dev.nanabell.jda.command.manager.context.ICommandContextBuilder
+import dev.nanabell.jda.command.manager.event.IEventMediator
+import dev.nanabell.jda.command.manager.event.impl.NoOpMediator
 import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.listener.impl.CompositeCommandListener
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
@@ -25,12 +27,14 @@ class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
     private var permissionHandler: IPermissionHandler? = null
     private var metrics: ICommandMetrics? = null
     private var context: ICommandContextBuilder? = null
+    private var mediator: IEventMediator? = null
 
 
     fun build(): CommandManager {
 
         val permissionHandler = this.permissionHandler ?: DefaultPermissionHandlerBuilder().build()
         val metrics = this.metrics ?: SimpleCommandMetrics()
+        val mediator = this.mediator ?: NoOpMediator()
 
         return CommandManager(
             prefix,
@@ -42,7 +46,8 @@ class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
             compiler,
             permissionHandler,
             metrics,
-            checkNotNull(context)
+            checkNotNull(context),
+            mediator
         )
     }
 
@@ -103,6 +108,11 @@ class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
 
     fun setContextBuilder(context: ICommandContextBuilder): CommandManagerBuilder {
         this.context = context
+        return this
+    }
+
+    fun setEventMediator(mediator: IEventMediator): CommandManagerBuilder {
+        this.mediator = mediator
         return this
     }
 }

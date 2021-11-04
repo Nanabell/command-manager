@@ -1,7 +1,7 @@
 package dev.nanabell.jda.command.manager.context
 
-import dev.nanabell.jda.command.manager.event.MessageReceivedEvent
-import dev.nanabell.jda.command.manager.event.SlashCommandEvent
+import dev.nanabell.jda.command.manager.event.impl.MessageReceivedEvent
+import dev.nanabell.jda.command.manager.event.impl.SlashCommandEvent
 
 class TestCommandContextBuilder(
     private val selfUserId: Long,

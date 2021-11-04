@@ -7,8 +7,8 @@ import dev.nanabell.jda.command.manager.compile.exception.MissingCommandAnnotati
 import dev.nanabell.jda.command.manager.compile.exception.RecursiveCommandPathException
 import dev.nanabell.jda.command.manager.compile.exception.SlashCommandDepthException
 import dev.nanabell.jda.command.manager.context.TestCommandContextBuilder
-import dev.nanabell.jda.command.manager.event.MessageReceivedEvent
-import dev.nanabell.jda.command.manager.event.SlashCommandEvent
+import dev.nanabell.jda.command.manager.event.impl.MessageReceivedEvent
+import dev.nanabell.jda.command.manager.event.impl.SlashCommandEvent
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import dev.nanabell.jda.command.manager.metrics.impl.SimpleCommandMetrics
 import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
