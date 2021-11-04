@@ -12,7 +12,8 @@ import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.compile.exception.MissingCommandAnnotationException
 import dev.nanabell.jda.command.manager.compile.exception.RecursiveCommandPathException
 import dev.nanabell.jda.command.manager.compile.exception.SlashCommandDepthException
-import net.dv8tion.jda.api.Permission
+import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.permission.Permission
 import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
 
@@ -20,7 +21,7 @@ class AnnotationCommandCompiler : ICommandCompiler {
 
     private val logger = LoggerFactory.getLogger(AnnotationCommandCompiler::class.java)
 
-    override fun compile(command: ICommand): CompiledCommand {
+    override fun compile(command: ICommand<ICommandContext>): CompiledCommand {
         logger.debug("Compiling Command ${command::class.qualifiedName}")
         if (!command::class.java.isAnnotationPresent(Command::class.java)) {
             throw MissingCommandAnnotationException(command::class)
@@ -32,7 +33,7 @@ class AnnotationCommandCompiler : ICommandCompiler {
         val ownerOnly = command::class.java.isAnnotationPresent(OwnerOnly::class.java)
         logger.trace("${command::class.qualifiedName} | ownerOnly=${ownerOnly}")
 
-        var subCommandOf: KClass<out ICommand>? = null
+        var subCommandOf: KClass<out ICommand<*>>? = null
         if (command::class.java.isAnnotationPresent(SubCommandOf::class.java)) {
             subCommandOf = command::class.java.getAnnotation(SubCommandOf::class.java).subCommandOf
             logger.trace("${command::class.qualifiedName} | subCommandOf=${subCommandOf.qualifiedName}")
@@ -76,7 +77,7 @@ class AnnotationCommandCompiler : ICommandCompiler {
         }
     }
 
-    private fun buildCommandPath(command: KClass<out ICommand>, subcommandOf: KClass<out ICommand>?, seen: MutableSet<KClass<out ICommand>>): String {
+    private fun buildCommandPath(command: KClass<out ICommand<*>>, subcommandOf: KClass<out ICommand<*>>?, seen: MutableSet<KClass<out ICommand<*>>>): String {
         if (seen.contains(command)) throw RecursiveCommandPathException(command, seen)
         seen.add(command)
 

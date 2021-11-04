@@ -1,12 +1,12 @@
 package dev.nanabell.jda.command.manager.command
 
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException
-import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.context.TestCommandContext
 
 @Command("rejected", "Example Rejected Command")
-class RejectedCommand : ICommand{
+class RejectedCommand : ITestCommand {
 
-    override fun execute(context: ICommandContext) {
+    override fun execute(context: TestCommandContext) {
         throw CommandRejectedException("Demo Command")
     }
 

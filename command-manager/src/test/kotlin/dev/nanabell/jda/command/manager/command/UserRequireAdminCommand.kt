@@ -1,14 +1,14 @@
 package dev.nanabell.jda.command.manager.command
 
 import dev.nanabell.jda.command.manager.command.annotation.UserPermission
-import dev.nanabell.jda.command.manager.context.ICommandContext
-import net.dv8tion.jda.api.Permission
+import dev.nanabell.jda.command.manager.context.TestCommandContext
+import dev.nanabell.jda.command.manager.permission.Permission
 
 @UserPermission([Permission.ADMINISTRATOR])
 @Command("admin", "Example Admin Command", guildOnly = true)
-class UserRequireAdminCommand : ICommand {
+class UserRequireAdminCommand : ITestCommand {
 
-    override fun execute(context: ICommandContext) {
+    override fun execute(context: TestCommandContext) {
         println("Admin Executed Command")
     }
 

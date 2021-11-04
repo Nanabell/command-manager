@@ -6,4 +6,4 @@ import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class SubCommandOf(val subCommandOf: KClass<out ICommand>)
+annotation class SubCommandOf(val subCommandOf: KClass<out ICommand<*>>)

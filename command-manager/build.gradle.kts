@@ -17,20 +17,11 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.31")
 
-    compileOnly("io.micronaut:micronaut-context:3.1.3")
-    implementation("io.micrometer:micrometer-core:1.7.5")
-
-    compileOnly("net.dv8tion:JDA:4.3.0_277") {
-        exclude("opus-java")
-    }
+    implementation("org.slf4j:slf4j-api:1.7.32")
+    implementation("jakarta.inject:jakarta.inject-api:2.0.1.MR")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
-    testImplementation("org.mockito:mockito-core:4.0.0")
     testImplementation("org.mockito:mockito-junit-jupiter:4.0.0")
-    testImplementation("gnu.trove:trove:3.0.3")
-    testImplementation("net.dv8tion:JDA:4.3.0_277") {
-        exclude("opus-java")
-    }
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.2.6")
 }

@@ -1,6 +1,6 @@
 package dev.nanabell.jda.command.manager.command.annotation
 
-import net.dv8tion.jda.api.Permission
+import dev.nanabell.jda.command.manager.permission.Permission
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)

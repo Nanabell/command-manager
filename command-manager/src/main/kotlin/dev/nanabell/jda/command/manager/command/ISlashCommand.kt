@@ -1,11 +1,11 @@
 package dev.nanabell.jda.command.manager.command
 
-import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import dev.nanabell.jda.command.manager.context.ICommandContext
 
-interface ISlashCommand : ICommand {
+interface ISlashCommand<in T : ICommandContext> : ICommand<T> {
 
-    fun setOptions(): Collection<OptionData> {
-        return emptyList()
+    fun setOptions(): Collection<Any> {
+        TODO("Handle OptionData for SlashCommands")
     }
 
 }

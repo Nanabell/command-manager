@@ -2,6 +2,7 @@ package dev.nanabell.jda.command.manager
 
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.compile.impl.AnnotationCommandCompiler
+import dev.nanabell.jda.command.manager.context.ICommandContextBuilder
 import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.listener.impl.CompositeCommandListener
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
@@ -23,6 +24,7 @@ class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
     private var compiler: ICommandCompiler = AnnotationCommandCompiler()
     private var permissionHandler: IPermissionHandler? = null
     private var metrics: ICommandMetrics? = null
+    private var context: ICommandContextBuilder? = null
 
 
     fun build(): CommandManager {
@@ -30,7 +32,18 @@ class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
         val permissionHandler = this.permissionHandler ?: DefaultPermissionHandlerBuilder().build()
         val metrics = this.metrics ?: SimpleCommandMetrics()
 
-        return CommandManager(prefix, allowMention, autoRegister, ownerIds, listener, provider, compiler, permissionHandler, metrics)
+        return CommandManager(
+            prefix,
+            allowMention,
+            autoRegister,
+            ownerIds,
+            listener,
+            provider,
+            compiler,
+            permissionHandler,
+            metrics,
+            checkNotNull(context)
+        )
     }
 
     fun setPrefix(prefix: String): CommandManagerBuilder {
@@ -85,6 +98,11 @@ class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
 
     fun setCommandMetrics(metrics: ICommandMetrics): CommandManagerBuilder {
         this.metrics = metrics
+        return this
+    }
+
+    fun setContextBuilder(context: ICommandContextBuilder): CommandManagerBuilder {
+        this.context = context
         return this
     }
 }

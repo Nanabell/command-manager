@@ -5,11 +5,11 @@ import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
 import org.slf4j.LoggerFactory
 
-class StaticCommandProvider(private val commands: Collection<ICommand>) : ICommandProvider {
+class StaticCommandProvider(private val commands: Collection<ICommand<*>>) : ICommandProvider {
 
     private val logger = LoggerFactory.getLogger(StaticCommandProvider::class.java)
 
-    override fun provide(): Collection<ICommand> {
+    override fun provide(): Collection<ICommand<*>> {
         logger.trace("Providing ${commands.size} Commands")
         return commands
     }

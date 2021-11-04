@@ -2,17 +2,18 @@ package dev.nanabell.jda.command.manager.command.impl
 
 import dev.nanabell.jda.command.manager.command.ICommand
 import dev.nanabell.jda.command.manager.command.ISlashCommand
-import net.dv8tion.jda.api.Permission
+import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.permission.Permission
 import kotlin.reflect.KClass
 
 data class CompiledCommand(
-    val command: ICommand,
+    val command: ICommand<ICommandContext>,
     val commandPath: String,
     val name: String,
     val description: String,
     val guildOnly: Boolean,
     val requirePermission: Boolean,
-    val subcommandOf: KClass<out ICommand>?,
+    val subcommandOf: KClass<out ICommand<*>>?,
     val ownerOnly: Boolean,
     val userPermission: Array<Permission>,
     val botPermission: Array<Permission>,

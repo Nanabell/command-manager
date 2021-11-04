@@ -8,7 +8,7 @@ import jakarta.inject.Singleton
 @Singleton
 class MicronautCommandProvider(private val context: ApplicationContext) : ICommandProvider {
 
-    override fun provide(): Collection<ICommand> {
+     override fun provide(): Collection<ICommand<*>> {
         return context.getBeansOfType(ICommand::class.java)
     }
 

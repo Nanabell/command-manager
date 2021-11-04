@@ -1,13 +1,13 @@
 package dev.nanabell.jda.command.manager.command
 
 import dev.nanabell.jda.command.manager.command.annotation.SubCommandOf
-import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.context.TestCommandContext
 
 @SubCommandOf(SubCommand::class)
 @Command("sub2", "DoubleSub Command Example")
-class SubSubCommand : ICommand {
+class SubSubCommand : ITestCommand {
 
-    override fun execute(context: ICommandContext) {
+    override fun execute(context: TestCommandContext) {
     }
 
 }

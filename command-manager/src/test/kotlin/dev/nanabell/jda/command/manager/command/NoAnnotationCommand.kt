@@ -1,9 +1,9 @@
 package dev.nanabell.jda.command.manager.command
 
-import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.context.TestCommandContext
 
-class NoAnnotationCommand : ICommand{
-    override fun execute(context: ICommandContext) {
+class NoAnnotationCommand : ITestCommand {
+    override fun execute(context: TestCommandContext) {
 
     }
 }

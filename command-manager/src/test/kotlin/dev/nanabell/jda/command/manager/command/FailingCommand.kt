@@ -1,11 +1,11 @@
 package dev.nanabell.jda.command.manager.command
 
-import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.context.TestCommandContext
 
 @Command("fail", "This is a second Example Command")
-class FailingCommand : ICommand{
+class FailingCommand : ITestCommand {
 
-    override fun execute(context: ICommandContext) {
+    override fun execute(context: TestCommandContext) {
         throw Exception("This Command will always Fail")
     }
 

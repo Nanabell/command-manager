@@ -1,18 +1,18 @@
 package dev.nanabell.jda.command.manager
 
+import dev.nanabell.jda.command.manager.command.ICommand
 import dev.nanabell.jda.command.manager.command.exception.CommandAbortedException
 import dev.nanabell.jda.command.manager.command.exception.CommandRejectedException
 import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.context.ICommandContext
-import dev.nanabell.jda.command.manager.context.impl.CommandContext
+import dev.nanabell.jda.command.manager.context.ICommandContextBuilder
+import dev.nanabell.jda.command.manager.event.IMessageEvent
+import dev.nanabell.jda.command.manager.event.ICommandEvent
 import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import dev.nanabell.jda.command.manager.permission.IPermissionHandler
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 
 class CommandManager(
@@ -24,8 +24,9 @@ class CommandManager(
     provider: ICommandProvider,
     compiler: ICommandCompiler,
     private val permissionHandler: IPermissionHandler,
-    private val metrics: ICommandMetrics
-) : ListenerAdapter() {
+    private val metrics: ICommandMetrics,
+    private val contextBuilder: ICommandContextBuilder
+) {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
 
@@ -36,7 +37,8 @@ class CommandManager(
         // Load Commands
         logger.info("Initializing ${this::class.simpleName}")
 
-        val commands = provider.provide()
+        @Suppress("UNCHECKED_CAST") // Validated at ICommand<in T : ICommandContext> Interface
+        val commands = provider.provide() as Collection<ICommand<ICommandContext>>
         logger.debug("Compiling ${commands.size} command/s")
 
         for (command in commands) {
@@ -52,17 +54,17 @@ class CommandManager(
         logger.info("Finished ${this::class.simpleName} Initialization with ${getCommands().size} Command/s")
     }
 
-    override fun onMessageReceived(event: MessageReceivedEvent) {
+    fun onMessageReceived(event: IMessageEvent) {
         // TODO: Move this out of event Thread
 
         // Ignore Bots, System & Webhook Messages
-        if (event.author.isBot || event.author.isSystem || event.isWebhookMessage) {
+        if (event.isBot || event.isSystem || event.isWebhook) {
             logger.trace(
                 "Ignoring Message {}. Bot={}, System={}, Webhook={}",
-                event.messageIdLong,
-                event.author.isBot,
-                event.author.isSystem,
-                event.isWebhookMessage
+                event.messageId,
+                event.isBot,
+                event.isSystem,
+                event.isWebhook
             )
             return
         }
@@ -70,21 +72,19 @@ class CommandManager(
         // Prefix
         // TODO: Handle Mention Prefix
         var prefixed = false
-        var content = event.message.contentRaw
-
-        val message = event.message
-        if (message.contentRaw.startsWith(prefix)) {
+        var content = event.content
+        if (content.startsWith(prefix)) {
             content = content.substring(prefix.length)
             prefixed = true
         }
 
         if (!prefixed) {
-            logger.trace("Ignoring Message {}. Prefix=false", event.messageIdLong)
+            logger.trace("Ignoring Message {}. Prefix=false", event.messageId)
             return
         }
 
         // Parse Command Path
-        logger.trace("Found correctly prefixed message {}, beginning command Parsing", message.idLong)
+        logger.trace("Found correctly prefixed message {}, beginning command Parsing", event.messageId)
         val commandPath = content.replace(' ', '/')
         val paths = commandPath.split('/')
         logger.trace("Built TextCommandPath: /{}", commandPath)
@@ -113,10 +113,10 @@ class CommandManager(
 
         val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
 
-        executeCommand(compiled, CommandContext(event, ownerIds, arguments))
+        executeCommand(compiled, contextBuilder.fromMessage(event, ownerIds, arguments))
     }
 
-    override fun onSlashCommand(event: SlashCommandEvent) {
+    fun onSlashCommand(event: ICommandEvent) {
         // TODO: Move this out of event Thread
 
         logger.trace("Received Slash Command: $event")
@@ -129,7 +129,7 @@ class CommandManager(
             return
         }
 
-        executeCommand(compiled, CommandContext(event, ownerIds))
+        executeCommand(compiled, contextBuilder.fromCommand(event, ownerIds))
     }
 
     private fun executeCommand(compiled: CompiledCommand, context: ICommandContext) {

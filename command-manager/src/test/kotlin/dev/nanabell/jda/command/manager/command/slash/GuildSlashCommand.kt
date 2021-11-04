@@ -1,13 +1,12 @@
 package dev.nanabell.jda.command.manager.command.slash
 
 import dev.nanabell.jda.command.manager.command.Command
-import dev.nanabell.jda.command.manager.command.ISlashCommand
-import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.context.TestCommandContext
 
 @Command("guild", "Example Guild Slash Command", guildOnly = true)
-class GuildSlashCommand : ISlashCommand {
+class GuildSlashCommand : ITestSlashCommand {
 
-    override fun execute(context: ICommandContext) {
+    override fun execute(context: TestCommandContext) {
     }
 
 }

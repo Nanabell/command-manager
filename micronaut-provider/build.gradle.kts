@@ -41,9 +41,6 @@ dependencies {
     kaptTest("io.micronaut:micronaut-inject-java:3.1.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("io.micronaut.test:micronaut-test-junit5:3.0.3")
-    testImplementation("net.dv8tion:JDA:4.3.0_277") {
-        exclude("opus-java")
-    }
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.2.6")
 }

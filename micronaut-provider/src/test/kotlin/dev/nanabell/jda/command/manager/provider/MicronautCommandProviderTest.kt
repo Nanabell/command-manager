@@ -2,6 +2,7 @@ package dev.nanabell.jda.command.manager.provider
 
 import dev.nanabell.jda.command.manager.CommandManagerBuilder
 import dev.nanabell.jda.command.manager.command.DummyCommand
+import dev.nanabell.jda.command.manager.context.TestCommandContextBuilder
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions
@@ -26,6 +27,7 @@ internal class MicronautCommandProviderTest {
     internal fun `Test Injecting Provider Works`() {
         val manager = CommandManagerBuilder(";;", 0)
             .setMicronautProvider()
+            .setContextBuilder(TestCommandContextBuilder())
             .build()
 
         Assertions.assertEquals(1, manager.getCommands().size)

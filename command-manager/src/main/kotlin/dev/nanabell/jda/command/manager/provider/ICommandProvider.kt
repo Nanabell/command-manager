@@ -5,6 +5,6 @@ import dev.nanabell.jda.command.manager.context.ICommandContext
 
 fun interface ICommandProvider {
 
-    fun provide(): Collection<ICommand>
+    fun provide(): Collection<ICommand<*>>
 
 }

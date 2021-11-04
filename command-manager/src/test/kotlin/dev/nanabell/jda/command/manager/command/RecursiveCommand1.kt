@@ -2,12 +2,13 @@ package dev.nanabell.jda.command.manager.command
 
 import dev.nanabell.jda.command.manager.command.annotation.SubCommandOf
 import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.context.TestCommandContext
 
 @SubCommandOf(RecursiveCommand2::class)
 @Command("recurse1", "Example Recursive Command 1")
-class RecursiveCommand1 : ICommand{
+class RecursiveCommand1 : ITestCommand {
 
-    override fun execute(context: ICommandContext) {
+    override fun execute(context: TestCommandContext) {
     }
 
 }

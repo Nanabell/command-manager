@@ -4,7 +4,6 @@ import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.permission.check.IPermissionCheck
 import dev.nanabell.jda.command.manager.permission.check.PermissionResult
-import net.dv8tion.jda.api.entities.GuildChannel
 import org.slf4j.LoggerFactory
 
 class DiscordPermissionCheck(private val target: Target) : IPermissionCheck {
@@ -13,8 +12,8 @@ class DiscordPermissionCheck(private val target: Target) : IPermissionCheck {
 
     override fun check(command: CompiledCommand, context: ICommandContext): PermissionResult {
         val (requiredPermissions, member) = when (target) {
-            Target.MEMBER -> command.userPermission to context.member
-            Target.SELF -> command.botPermission to context.selfMember
+            Target.MEMBER -> command.userPermission to context.authorId
+            Target.SELF -> command.botPermission to context.selfUserId
         }
 
         if (requiredPermissions.isEmpty())
@@ -25,7 +24,7 @@ class DiscordPermissionCheck(private val target: Target) : IPermissionCheck {
             return PermissionResult.fail("Invalid DiscordPermission Check on Private Context. Contact Bot Owner")
         }
 
-        if (context.hasPermission(member!!, context.channel as GuildChannel, *requiredPermissions))
+        if (context.hasPermission(member, *requiredPermissions))
             return PermissionResult.success()
 
         return PermissionResult.fail(

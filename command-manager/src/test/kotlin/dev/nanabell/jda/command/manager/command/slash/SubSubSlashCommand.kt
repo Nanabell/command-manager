@@ -1,14 +1,13 @@
 package dev.nanabell.jda.command.manager.command.slash
 
 import dev.nanabell.jda.command.manager.command.Command
-import dev.nanabell.jda.command.manager.command.ISlashCommand
 import dev.nanabell.jda.command.manager.command.annotation.SubCommandOf
-import dev.nanabell.jda.command.manager.context.ICommandContext
+import dev.nanabell.jda.command.manager.context.TestCommandContext
 
 @SubCommandOf(SubSlashCommand::class)
 @Command("subsub", "Example Sub Sub SlashCommnd")
-class SubSubSlashCommand : ISlashCommand {
-    override fun execute(context: ICommandContext) {
+class SubSubSlashCommand : ITestSlashCommand {
+    override fun execute(context: TestCommandContext) {
         println("This is a SubGroup Sub SlashCommand")
     }
 }
