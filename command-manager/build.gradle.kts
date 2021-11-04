@@ -14,8 +14,8 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.31")
+    implementation(kotlin("stdlib", "1.5.31"))
+    implementation(kotlin("reflect", "1.5.31"))
 
     implementation("org.slf4j:slf4j-api:1.7.32")
     implementation("jakarta.inject:jakarta.inject-api:2.0.1.MR")

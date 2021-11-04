@@ -1,12 +1,12 @@
 package dev.nanabell.jda.command.manager.context
 
-import dev.nanabell.jda.command.manager.event.IMessageEvent
-import dev.nanabell.jda.command.manager.event.ICommandEvent
+import dev.nanabell.jda.command.manager.event.MessageReceivedEvent
+import dev.nanabell.jda.command.manager.event.SlashCommandEvent
 
 interface ICommandContextBuilder {
 
-    fun fromMessage(event: IMessageEvent, owners: Set<Long>, arguments: Array<String>): ICommandContext
+    fun fromMessage(event: MessageReceivedEvent, owners: Set<Long>, arguments: Array<String>): ICommandContext
 
-    fun fromCommand(event: ICommandEvent, owners: Set<Long>): ICommandContext
+    fun fromCommand(event: SlashCommandEvent, owners: Set<Long>): ICommandContext
 
 }

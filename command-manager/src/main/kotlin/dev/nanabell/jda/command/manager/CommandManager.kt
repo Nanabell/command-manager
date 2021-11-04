@@ -7,8 +7,8 @@ import dev.nanabell.jda.command.manager.command.impl.CompiledCommand
 import dev.nanabell.jda.command.manager.compile.ICommandCompiler
 import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.context.ICommandContextBuilder
-import dev.nanabell.jda.command.manager.event.IMessageEvent
-import dev.nanabell.jda.command.manager.event.ICommandEvent
+import dev.nanabell.jda.command.manager.event.MessageReceivedEvent
+import dev.nanabell.jda.command.manager.event.SlashCommandEvent
 import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import dev.nanabell.jda.command.manager.permission.IPermissionHandler
@@ -54,7 +54,7 @@ class CommandManager(
         logger.info("Finished ${this::class.simpleName} Initialization with ${getCommands().size} Command/s")
     }
 
-    fun onMessageReceived(event: IMessageEvent) {
+    fun onMessageReceived(event: MessageReceivedEvent) {
         // TODO: Move this out of event Thread
 
         // Ignore Bots, System & Webhook Messages
@@ -116,7 +116,7 @@ class CommandManager(
         executeCommand(compiled, contextBuilder.fromMessage(event, ownerIds, arguments))
     }
 
-    fun onSlashCommand(event: ICommandEvent) {
+    fun onSlashCommand(event: SlashCommandEvent) {
         // TODO: Move this out of event Thread
 
         logger.trace("Received Slash Command: $event")

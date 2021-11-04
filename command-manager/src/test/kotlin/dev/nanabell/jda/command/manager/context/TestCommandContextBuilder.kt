@@ -1,7 +1,7 @@
 package dev.nanabell.jda.command.manager.context
 
-import dev.nanabell.jda.command.manager.event.IMessageEvent
-import dev.nanabell.jda.command.manager.event.ICommandEvent
+import dev.nanabell.jda.command.manager.event.MessageReceivedEvent
+import dev.nanabell.jda.command.manager.event.SlashCommandEvent
 
 class TestCommandContextBuilder(
     private val selfUserId: Long,
@@ -10,14 +10,14 @@ class TestCommandContextBuilder(
 ) : ICommandContextBuilder {
 
     override fun fromMessage(
-        event: IMessageEvent,
+        event: MessageReceivedEvent,
         owners: Set<Long>,
         arguments: Array<String>
     ): ICommandContext {
         return TestCommandContext(owners, arguments, event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
     }
 
-    override fun fromCommand(event: ICommandEvent, owners: Set<Long>): ICommandContext {
+    override fun fromCommand(event: SlashCommandEvent, owners: Set<Long>): ICommandContext {
         return TestCommandContext(owners, emptyArray(), event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
     }
 

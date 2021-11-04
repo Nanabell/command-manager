@@ -7,10 +7,8 @@ import dev.nanabell.jda.command.manager.compile.exception.MissingCommandAnnotati
 import dev.nanabell.jda.command.manager.compile.exception.RecursiveCommandPathException
 import dev.nanabell.jda.command.manager.compile.exception.SlashCommandDepthException
 import dev.nanabell.jda.command.manager.context.TestCommandContextBuilder
-import dev.nanabell.jda.command.manager.event.IMessageEvent
-import dev.nanabell.jda.command.manager.event.ICommandEvent
-import dev.nanabell.jda.command.manager.event.TestCommandEvent
-import dev.nanabell.jda.command.manager.event.TestMessageEvent
+import dev.nanabell.jda.command.manager.event.MessageReceivedEvent
+import dev.nanabell.jda.command.manager.event.SlashCommandEvent
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import dev.nanabell.jda.command.manager.metrics.impl.SimpleCommandMetrics
 import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
@@ -332,8 +330,8 @@ internal class CommandManagerTest {
         guildId: Long? = null,
         isWebhook: Boolean = false,
         isSystem: Boolean = false
-    ): IMessageEvent {
-        return TestMessageEvent(content, userId, messageId, channelId, guildId, isBot, isWebhook, isSystem)
+    ): MessageReceivedEvent {
+        return MessageReceivedEvent(content, userId, messageId, channelId, guildId, isBot, isWebhook, isSystem, Any())
     }
 
     private fun getCommandEvent(
@@ -341,8 +339,8 @@ internal class CommandManagerTest {
         userId: Long = 0,
         channelId: Long = 0,
         guildId: Long? = null,
-    ): ICommandEvent {
-        return TestCommandEvent(commandPath, userId, channelId, guildId)
+    ): SlashCommandEvent {
+        return SlashCommandEvent(commandPath, userId, channelId, guildId, Any())
     }
 
 }
