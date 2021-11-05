@@ -4,6 +4,4 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven("https://m2.dv8tion.net/releases")
-    maven("https://zoidberg.ukp.informatik.tu-darmstadt.de/artifactory/public-releases/")
 }
