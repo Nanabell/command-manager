@@ -1,5 +1,6 @@
 package dev.nanabell.jda.command.manager.command.impl
 
+import dev.nanabell.jda.command.manager.CommandManager
 import dev.nanabell.jda.command.manager.command.ICommand
 import dev.nanabell.jda.command.manager.command.ISlashCommand
 import dev.nanabell.jda.command.manager.context.ICommandContext
@@ -7,6 +8,7 @@ import dev.nanabell.jda.command.manager.permission.Permission
 import kotlin.reflect.KClass
 
 data class CompiledCommand(
+    val manager: CommandManager,
     val command: ICommand<ICommandContext>,
     val commandPath: String,
     val name: String,

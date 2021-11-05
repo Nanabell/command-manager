@@ -4,8 +4,6 @@ import dev.nanabell.jda.command.manager.permission.Permission
 
 interface ICommandContext {
 
-    val ownerIds: Set<Long>
-
     val arguments: Array<String>
 
     val authorId: Long

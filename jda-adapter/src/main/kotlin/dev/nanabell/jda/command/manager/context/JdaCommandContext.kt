@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.Permission as JdaPermission
 
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
 class JdaCommandContext(
-    override val ownerIds: Set<Long>,
     override val arguments: Array<String>,
     val user: User,
     val channel: MessageChannel,

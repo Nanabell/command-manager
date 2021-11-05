@@ -9,14 +9,13 @@ class BasicCommandContextBuilder : ICommandContextBuilder {
 
     override fun fromMessage(
         event: MessageReceivedEvent,
-        owners: Set<Long>,
         arguments: Array<String>
     ): ICommandContext {
-        return BasicContext(owners, arguments, event.authorId, event.channelId, event.guildId, -1 /*Unknown*/)
+        return BasicContext(arguments, event.authorId, event.channelId, event.guildId, -1 /*Unknown*/)
     }
 
-    override fun fromCommand(event: SlashCommandEvent, owners: Set<Long>): ICommandContext {
-        return BasicContext(owners, emptyArray(), event.authorId, event.channelId, event.guildId, -1 /*Unknown*/)
+    override fun fromCommand(event: SlashCommandEvent): ICommandContext {
+        return BasicContext(emptyArray(), event.authorId, event.channelId, event.guildId, -1 /*Unknown*/)
     }
 
 }

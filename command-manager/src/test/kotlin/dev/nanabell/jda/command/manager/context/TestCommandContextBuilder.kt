@@ -11,14 +11,13 @@ class TestCommandContextBuilder(
 
     override fun fromMessage(
         event: MessageReceivedEvent,
-        owners: Set<Long>,
         arguments: Array<String>
     ): ICommandContext {
-        return TestCommandContext(owners, arguments, event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
+        return TestCommandContext(arguments, event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
     }
 
-    override fun fromCommand(event: SlashCommandEvent, owners: Set<Long>): ICommandContext {
-        return TestCommandContext(owners, emptyArray(), event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
+    override fun fromCommand(event: SlashCommandEvent): ICommandContext {
+        return TestCommandContext(emptyArray(), event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
     }
 
 }

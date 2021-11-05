@@ -7,14 +7,14 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent as JdaMessageRece
 
 class JdaContextBuilder : ICommandContextBuilder {
 
-    override fun fromMessage(event: MessageReceivedEvent, owners: Set<Long>, arguments: Array<String>): ICommandContext {
+    override fun fromMessage(event: MessageReceivedEvent, arguments: Array<String>): ICommandContext {
         val base = event.raw as JdaMessageReceivedEvent
-        return JdaCommandContext(owners, arguments, base.author, base.channel, if (base.isFromGuild) base.guild else null)
+        return JdaCommandContext(arguments, base.author, base.channel, if (base.isFromGuild) base.guild else null)
     }
 
-    override fun fromCommand(event: SlashCommandEvent, owners: Set<Long>): ICommandContext {
+    override fun fromCommand(event: SlashCommandEvent): ICommandContext {
         val base = event.raw as JdaSlashCommandEvent
-        return JdaCommandContext(owners, emptyArray(), base.user, base.channel, base.guild)
+        return JdaCommandContext(emptyArray(), base.user, base.channel, base.guild)
     }
 
 }

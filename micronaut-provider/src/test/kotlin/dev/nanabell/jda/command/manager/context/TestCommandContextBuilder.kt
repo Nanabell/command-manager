@@ -7,13 +7,12 @@ class TestCommandContextBuilder : ICommandContextBuilder {
 
     override fun fromMessage(
         event: MessageReceivedEvent,
-        owners: Set<Long>,
         arguments: Array<String>
     ): ICommandContext {
         throw UnsupportedOperationException()
     }
 
-    override fun fromCommand(event: SlashCommandEvent, owners: Set<Long>): ICommandContext {
+    override fun fromCommand(event: SlashCommandEvent): ICommandContext {
         throw UnsupportedOperationException()
     }
 

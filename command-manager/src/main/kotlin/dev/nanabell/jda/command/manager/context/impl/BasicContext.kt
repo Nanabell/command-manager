@@ -4,7 +4,6 @@ import dev.nanabell.jda.command.manager.context.ICommandContext
 import dev.nanabell.jda.command.manager.permission.Permission
 
 class BasicContext(
-    override val ownerIds: Set<Long>,
     override val arguments: Array<String>,
     override val authorId: Long,
     override val channelId: Long,

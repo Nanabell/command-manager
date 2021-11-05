@@ -21,7 +21,7 @@ class CommandManager(
     private val prefix: String,
     private val allowMention: Boolean = false,
     private val autoRegisterCommands: Boolean = false,
-    private val ownerIds: Set<Long>,
+    val ownerIds: Set<Long>,
     private val listener: ICommandListener,
     provider: ICommandProvider,
     compiler: ICommandCompiler,
@@ -45,7 +45,7 @@ class CommandManager(
         logger.debug("Compiling ${commands.size} command/s")
 
         for (command in commands) {
-            val compiled = compiler.compile(command)
+            val compiled = compiler.compile(command, this)
             when (compiled.isSlashCommand) {
                 false -> textCommands.add(compiled)
                 true -> slashCommands.add(compiled)
@@ -119,7 +119,7 @@ class CommandManager(
 
         val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
 
-        executeCommand(compiled, contextBuilder.fromMessage(event, ownerIds, arguments))
+        executeCommand(compiled, contextBuilder.fromMessage(event, arguments))
     }
 
     override fun onSlashCommand(event: SlashCommandEvent) {
@@ -135,7 +135,7 @@ class CommandManager(
             return
         }
 
-        executeCommand(compiled, contextBuilder.fromCommand(event, ownerIds))
+        executeCommand(compiled, contextBuilder.fromCommand(event))
     }
 
     private fun executeCommand(compiled: CompiledCommand, context: ICommandContext) {

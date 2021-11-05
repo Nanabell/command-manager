@@ -5,8 +5,8 @@ import dev.nanabell.jda.command.manager.event.impl.SlashCommandEvent
 
 interface ICommandContextBuilder {
 
-    fun fromMessage(event: MessageReceivedEvent, owners: Set<Long>, arguments: Array<String>): ICommandContext
+    fun fromMessage(event: MessageReceivedEvent, arguments: Array<String>): ICommandContext
 
-    fun fromCommand(event: SlashCommandEvent, owners: Set<Long>): ICommandContext
+    fun fromCommand(event: SlashCommandEvent): ICommandContext
 
 }

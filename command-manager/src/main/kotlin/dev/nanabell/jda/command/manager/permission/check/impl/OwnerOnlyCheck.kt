@@ -8,7 +8,7 @@ import dev.nanabell.jda.command.manager.permission.check.PermissionResult
 class OwnerOnlyCheck : IPermissionCheck {
 
     override fun check(command: CompiledCommand, context: ICommandContext): PermissionResult {
-        if (command.ownerOnly && !context.ownerIds.contains(context.authorId))
+        if (command.ownerOnly && !command.manager.ownerIds.contains(context.authorId))
             return PermissionResult.fail("This Command can only be ran by the Bot Owner!")
 
         return PermissionResult.success()

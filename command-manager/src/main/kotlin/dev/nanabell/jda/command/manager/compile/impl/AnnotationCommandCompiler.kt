@@ -1,5 +1,6 @@
 package dev.nanabell.jda.command.manager.compile.impl
 
+import dev.nanabell.jda.command.manager.CommandManager
 import dev.nanabell.jda.command.manager.command.Command
 import dev.nanabell.jda.command.manager.command.ICommand
 import dev.nanabell.jda.command.manager.command.ISlashCommand
@@ -21,7 +22,7 @@ class AnnotationCommandCompiler : ICommandCompiler {
 
     private val logger = LoggerFactory.getLogger(AnnotationCommandCompiler::class.java)
 
-    override fun compile(command: ICommand<ICommandContext>): CompiledCommand {
+    override fun compile(command: ICommand<ICommandContext>, manager: CommandManager): CompiledCommand {
         logger.debug("Compiling Command ${command::class.qualifiedName}")
         if (!command::class.java.isAnnotationPresent(Command::class.java)) {
             throw MissingCommandAnnotationException(command::class)
@@ -62,6 +63,7 @@ class AnnotationCommandCompiler : ICommandCompiler {
         }
 
         return CompiledCommand(
+            manager,
             command,
             commandPath,
             commandAnnotation.name,
