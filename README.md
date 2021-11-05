@@ -264,7 +264,7 @@ class JdaEventMediator : IEventMediator, EventListener {
 This sounds more interesting but the Handler itself is something very few will actually need to replace.  
 The Handler is responsible for Checking Command Permission, Who is trying to execute what and where.  
 It is also responsible for responding to the User (or not) if a Permission Check has failed.  
-The Default Implementation of delegates this to a set of Permission Checks implementing `IPermissionCheck`
+The Default Implementation delegates this to a set of Permission Checks implementing `IPermissionCheck`
 ```kotlin
 class DefaultPermissionHandler(private val checks: Set<IPermissionCheck>, private val rootOwner: Boolean) : IPermissionHandler {
 
