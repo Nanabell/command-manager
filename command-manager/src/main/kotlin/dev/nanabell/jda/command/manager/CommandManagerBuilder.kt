@@ -15,9 +15,9 @@ import dev.nanabell.jda.command.manager.provider.ICommandProvider
 import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
 
 @Suppress("unused")
-class CommandManagerBuilder(private var prefix: String, ownerId: Long) {
+class CommandManagerBuilder(private var prefix: String, vararg ownerIds: Long) {
 
-    private var ownerIds: MutableSet<Long> = mutableSetOf(ownerId)
+    private var ownerIds: MutableSet<Long> = ownerIds.toMutableSet()
     private var allowMention: Boolean = false
     private var autoRegister: Boolean = false
 
