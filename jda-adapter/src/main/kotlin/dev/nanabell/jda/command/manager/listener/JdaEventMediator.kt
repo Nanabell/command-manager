@@ -46,5 +46,4 @@ class JdaEventMediator : IEventMediator, EventListener {
             )
         }
     }
-
 }

@@ -37,8 +37,4 @@ class DefaultPermissionHandler(
 
         return true
     }
-
-    companion object {
-
-    }
 }
