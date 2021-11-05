@@ -96,23 +96,23 @@ class CommandManagerBuilder(private var prefix: String, vararg ownerIds: Long) {
         return this
     }
 
-    fun setPermissionHandler(permissionHandler: IPermissionHandler): CommandManagerBuilder {
-        this.permissionHandler = permissionHandler
-        return this
-    }
-
-    fun setCommandMetrics(metrics: ICommandMetrics): CommandManagerBuilder {
-        this.metrics = metrics
-        return this
-    }
-
     fun setContextBuilder(context: ICommandContextBuilder): CommandManagerBuilder {
         this.context = context
         return this
     }
 
+    fun setPermissionHandler(permissionHandler: IPermissionHandler): CommandManagerBuilder {
+        this.permissionHandler = permissionHandler
+        return this
+    }
+
     fun setEventMediator(mediator: IEventMediator): CommandManagerBuilder {
         this.mediator = mediator
+        return this
+    }
+
+    fun setCommandMetrics(metrics: ICommandMetrics): CommandManagerBuilder {
+        this.metrics = metrics
         return this
     }
 }
