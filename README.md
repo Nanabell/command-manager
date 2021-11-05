@@ -28,10 +28,10 @@ val manager = builder.build()
 
 It is **strongly** recommended you use a framework adapter as the `.useXXX` will set multiple required CommandManager features
 like CommandContextBuilder, EventMediator etc...  
-If you dont want to use a Framework adapter you can always set these manually and the CommandManager should always complain in warning logs if something might be not be configured correctly.
+If you don't want to use a Framework adapter you can always set these manually and the CommandManager should always complain in warning logs if something might be not be configured correctly.
 
 ### Micronaut Framework
-If you are using Micronaut you can add the Micronaut Command Provider Dependency, to automatically find and load all Comamnd Classes
+If you are using Micronaut you can add the Micronaut Command Provider Dependency, to automatically find and load all Command Classes
 ```shell
 dependencies {
   implementation("dev.nanabell.jda.command.manager:micronaut-provider:VERSION")
@@ -264,7 +264,7 @@ class JdaEventMediator : IEventMediator, EventListener {
 This sounds more interesting but the Handler itself is something very few will actually need to replace.  
 The Handler is responsible for Checking Command Permission, Who is trying to execute what and where.  
 It is also responsible for responding to the User (or not) if a Permission Check has failed.  
-The Default Implementation of this delegates the Permission Checks to a set of `IPermissionCheck`s
+The Default Implementation of delegates this to a set of Permission Checks implementing `IPermissionCheck`
 ```kotlin
 class DefaultPermissionHandler(private val checks: Set<IPermissionCheck>, private val rootOwner: Boolean) : IPermissionHandler {
 
