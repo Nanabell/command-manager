@@ -6,8 +6,8 @@ I've tried making as much as possible Pluggable and Replaceable allowing maximum
 Simply add the Command Manager to your Project and the adapter for your Framework
 ````shell
 dependencies {
-  implementation("dev.nanabell.jda.command.manager:command-manager:VERSION")
-  implementation("dev.nanabell.jda.command.manager:jda-adapter:VERSION") // JDA as example here
+  implementation("dev.nanabell.command.manager:command-manager:VERSION")
+  implementation("dev.nanabell.command.manager:jda-adapter:VERSION") // JDA as example here
 }
 ````
 
@@ -34,7 +34,7 @@ If you don't want to use a Framework adapter you can always set these manually a
 If you are using Micronaut you can add the Micronaut Command Provider Dependency, to automatically find and load all Command Classes
 ```shell
 dependencies {
-  implementation("dev.nanabell.jda.command.manager:micronaut-provider:VERSION")
+  implementation("dev.nanabell.command.manager:micronaut-provider:VERSION")
 }
 ```
 For the MicronautCommandProvider to work properly you need to define all of your commands as `@Singleton`s,  
@@ -44,7 +44,7 @@ micronaut {
     ...
     processing {
         incremental(true)
-        annotations("my.existing.package.*", "dev.nanabell.jda.command.manager.command.Command")
+        annotations("my.existing.package.*", "dev.nanabell.command.manager.command.Command")
     }
 }
 ```
@@ -53,7 +53,7 @@ Additionally, if you are using Kapt add it to kapt's annotation processing as we
 kapt {
     arguments {
         ...
-        arg("micronaut.processing.annotations", "my.existing.package.*,dev.nanabell.jda.command.manager.command.Command")
+        arg("micronaut.processing.annotations", "my.existing.package.*,dev.nanabell.command.manager.command.Command")
         ...
     }
 }
@@ -76,7 +76,7 @@ The CommandManger comes with an extra Module which adds Micrometer Metrics suppo
 To add Micrometer add the module to gradle
 ```shell
 dependencies {
-  implementation("dev.nanabell.jda.command.manager:micrometer-metrics:VERSION")
+  implementation("dev.nanabell.command.manager:micrometer-metrics:VERSION")
 }
 ```
 And register the Metrics Collector:
@@ -93,9 +93,9 @@ If no adapter for your Framework exists feel free to create your own.
 
 A Command is always Bound to a Class and requires a `ICommand<ICommandContext>` Interface Implementation
 ```kotlin
-import dev.nanabell.jda.command.manager.command.Command
-import dev.nanabell.jda.command.manager.command.JdaCommand
-import dev.nanabell.jda.command.manager.context.JdaCommandContext
+import dev.nanabell.command.manager.command.Command
+import dev.nanabell.command.manager.command.JdaCommand
+import dev.nanabell.command.manager.context.JdaCommandContext
 
 @Command(name = "demo", description = "This is a Demo Command")
 class DemoCommand : JdaCommand {
@@ -217,8 +217,8 @@ class BasicContext(
 Not much to say here, this Class is responsible for Converting Discord Framework Events (or any other source really) into CommandManager events.
 Essentially this is the entrypoint into the CommandManger Processing.
 ```kotlin
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent as JdaSlashCommandEvent
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent as JdaMessageReceivedEvent
+import net.dv8tion.api.events.interaction.SlashCommandEvent as JdaSlashCommandEvent
+import net.dv8tion.api.events.message.MessageReceivedEvent as JdaMessageReceivedEvent
 
 class JdaEventMediator : IEventMediator, EventListener {
 

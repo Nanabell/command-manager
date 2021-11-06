@@ -3,7 +3,7 @@ plugins {
     `java-library`
     `maven-publish`
 }
-group = "dev.nanabell.jda.command.manager"
+group = "dev.nanabell.command.manager"
 version = "1.0.0"
 
 repositories {
@@ -45,6 +45,14 @@ publishing {
             version = project.version.toString()
 
             from(components["java"])
+        }
+    }
+
+    repositories {
+        maven {
+            name = "jfrog"
+            url = uri("https://nanabell.jfrog.io/artifactory/all-mvn")
+            credentials(PasswordCredentials::class.java)
         }
     }
 }
