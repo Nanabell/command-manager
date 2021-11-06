@@ -22,6 +22,12 @@ data class CompiledCommand(
 ) {
     val isSlashCommand: Boolean = command is ISlashCommand
 
+    fun execute(context: ICommandContext): Long {
+        val start = System.currentTimeMillis()
+        command.execute(context)
+        return System.currentTimeMillis() - start
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

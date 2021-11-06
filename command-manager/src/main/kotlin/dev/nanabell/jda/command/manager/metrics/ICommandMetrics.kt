@@ -8,7 +8,7 @@ interface ICommandMetrics {
     fun incFailed()
     fun incUnknown()
 
-    fun record(runnable: Runnable)
+    fun record(duration: Long)
 
     fun getExecuted(): Long
     fun getRejected(): Long

@@ -31,8 +31,8 @@ class SimpleCommandMetrics : ICommandMetrics {
         unknown.getAndIncrement()
     }
 
-    override fun record(runnable: Runnable) {
-        runnable.run()
+    override fun record(duration: Long) {
+        // Not supported
     }
 
     override fun getExecuted(): Long {

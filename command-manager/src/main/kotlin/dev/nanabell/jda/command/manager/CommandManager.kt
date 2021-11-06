@@ -138,42 +138,39 @@ class CommandManager(
         executeCommand(compiled, contextBuilder.fromCommand(event))
     }
 
-    private fun executeCommand(compiled: CompiledCommand, context: ICommandContext) {
-        val command = compiled.command
-
-        if (!permissionHandler.handle(compiled, context)) {
-            listener.onRejected(compiled, context, CommandRejectedException("Think of something here")) // STOPSHIP: 01/11/2021
+    private fun executeCommand(command: CompiledCommand, context: ICommandContext) {
+        if (!permissionHandler.handle(command, context)) {
+            listener.onRejected(command, context, CommandRejectedException("Think of something here")) // STOPSHIP: 01/11/2021
             metrics.incRejected()
             return
         }
 
         try {
             logger.debug("Executing Command: $command")
-            listener.onExecute(compiled, context)
+            listener.onExecute(command, context)
 
-            val start = System.currentTimeMillis()
-            metrics.record { command.execute(context) }
-            val duration = start - System.currentTimeMillis()
+            val duration = command.execute(context)
+            metrics.record(duration)
 
             logger.debug("Command ${command::class.qualifiedName} has finished Executing in ${duration}ms")
-            listener.onExecuted(compiled, context)
+            listener.onExecuted(command, context)
             metrics.incExecuted()
 
         } catch (e: CommandRejectedException) {
             logger.debug("Command ${command::class.qualifiedName} has been Rejected", e)
-            listener.onRejected(compiled, context, e)
+            listener.onRejected(command, context, e)
             metrics.incRejected()
             return
 
         } catch (e: CommandAbortedException) {
             logger.debug("Command ${command::class.qualifiedName} has been Aborted", e)
-            listener.onAborted(compiled, context, e)
+            listener.onAborted(command, context, e)
             metrics.incAborted()
             return
 
         } catch (e: Throwable) {
             logger.error("Command ${command::class.qualifiedName} has failed!", e)
-            listener.onFailed(compiled, context, e)
+            listener.onFailed(command, context, e)
             metrics.incFailed()
             return
 

@@ -2,6 +2,7 @@ package com.nanabell.jda.command.manager.metrics
 
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import io.micrometer.core.instrument.MeterRegistry
+import java.util.concurrent.TimeUnit
 
 class MicrometerCommandMetrics(registry: MeterRegistry) : ICommandMetrics {
 
@@ -32,8 +33,8 @@ class MicrometerCommandMetrics(registry: MeterRegistry) : ICommandMetrics {
         unknown.increment()
     }
 
-    override fun record(runnable: Runnable) {
-        timer.record(runnable)
+    override fun record(duration: Long) {
+        timer.record(duration, TimeUnit.MILLISECONDS)
     }
 
     override fun getExecuted(): Long {
