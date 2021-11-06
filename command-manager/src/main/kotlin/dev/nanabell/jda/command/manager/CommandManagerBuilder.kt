@@ -41,8 +41,8 @@ class CommandManagerBuilder(private var prefix: String, vararg ownerIds: Long) {
         val provider = this.provider ?: StaticCommandProvider(emptyList()).also { logger.warn("No Command Provider has been set. Building Command Manager with 0 Commands") }
         val compiler = this.compiler ?: AnnotationCommandCompiler()
         val registry = this.registry ?: MemoryCommandRegistry()
-        val mediator = this.mediator ?: NoOpMediator().also { logger.warn("No Event Mediator has been set. Command Manger event will not be called automatically!") }
-        val context = this.context ?: BasicCommandContextBuilder().also { logger.warn("No Command Context Builder has been set. Building minimal. This will not be usable for real scenarios") }
+        val mediator = this.mediator ?: NoOpMediator().also { logger.warn("No Event Mediator has been set. Command Manger events will not be called automatically!") }
+        val context = this.context ?: BasicCommandContextBuilder().also { logger.warn("No Command Context Builder has been set. Using ${BasicCommandContextBuilder::class.simpleName}. This will not be usable for real scenarios") }
         val permissionHandler = this.permissionHandler ?: DefaultPermissionHandlerBuilder().build()
         val metrics = this.metrics ?: SimpleCommandMetrics()
 

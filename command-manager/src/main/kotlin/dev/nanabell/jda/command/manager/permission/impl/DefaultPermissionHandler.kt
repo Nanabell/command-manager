@@ -14,17 +14,26 @@ class DefaultPermissionHandler(
     private val logger = LoggerFactory.getLogger(DefaultPermissionHandler::class.java)
 
     override fun handle(command: CompiledCommand, context: ICommandContext): Boolean {
-        if (!command.requirePermission)
+        if (!command.requirePermission) {
+            logger.debug("Command $command does not require Permissions")
             return true
+        }
+
 
         // Add Owner override to any and all Permission Checks
-        if (rootOwner && command.manager.ownerIds.contains(context.authorId))
+        if (rootOwner && command.manager.ownerIds.contains(context.authorId)) {
+            logger.debug("Command $command has been executed by owner ${context.authorId}")
             return true
+        }
+
 
         for (check in checks) {
             val result = check.check(command, context)
-            if (result.success)
+            if (result.success) {
+                logger.trace("Permission Check $${check::class.simpleName} passed for command $command-$context")
                 continue
+            }
+
 
             val error = result.error
             if (error != null) {
@@ -35,6 +44,7 @@ class DefaultPermissionHandler(
             }
         }
 
+        logger.debug("$command passed all Permission Checks in $context")
         return true
     }
 }

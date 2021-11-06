@@ -41,7 +41,6 @@ class CommandManager(
     private var executionScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     init {
-        // Load Commands
         logger.info("Initializing ${this::class.simpleName}")
 
         @Suppress("UNCHECKED_CAST") // Validated at ICommand<in T : ICommandContext> Interface
@@ -55,7 +54,7 @@ class CommandManager(
 
         // TODO: Register Slash Commands if enabled
         // TODO: Ensure Prefix has no Invalid Characters
-        logger.debug("Registering self at event Mediator: ${mediator::class.simpleName}")
+        logger.debug("Registering EventMediator: ${mediator::class.simpleName}")
         mediator.registerCommandManager(this)
 
         logger.info("Finished ${this::class.simpleName} Initialization with ${registry.size} Command/s")
@@ -90,7 +89,7 @@ class CommandManager(
             }
 
             // Parse Command Path
-            logger.trace("Found correctly prefixed message {}, beginning command Parsing", event.messageId)
+            logger.trace("Parsing command in Message {}", event.messageId)
             val commandPath = content.replace(' ', '/')
             val paths = commandPath.split('/')
             logger.trace("Built TextCommandPath: /{}", commandPath)
@@ -138,8 +137,9 @@ class CommandManager(
     }
 
     private suspend fun executeCommand(command: CompiledCommand, context: ICommandContext) {
+        logger.debug("Checking Permissions for $command in $context")
         if (!permissions.handle(command, context)) {
-            listener.onRejected(command, context, CommandRejectedException("Think of something here")) // STOPSHIP: 01/11/2021
+            listener.onRejected(command, context, CommandRejectedException("Think of something here"))
             metrics.incRejected()
             return
         }
