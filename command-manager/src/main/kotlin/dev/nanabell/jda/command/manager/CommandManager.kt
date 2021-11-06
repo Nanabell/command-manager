@@ -34,7 +34,7 @@ class CommandManager(
 ) : IEventListener {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
-    private var executionScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private var executionScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private val slashCommands: MutableList<CompiledCommand> = mutableListOf()
     private val textCommands: MutableList<CompiledCommand> = mutableListOf()
