@@ -7,7 +7,7 @@ import dev.nanabell.jda.command.manager.permission.Permission
 @UserPermission([Permission.ADMINISTRATOR])
 @Command("illegal", "Illegal Command Requiring Permission as Global Command")
 class IllegalDiscordPermissionCommand : ITestCommand {
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
         println("This should not be executed normally!")
     }
 }

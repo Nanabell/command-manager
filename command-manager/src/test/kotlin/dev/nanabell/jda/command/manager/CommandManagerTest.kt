@@ -12,17 +12,18 @@ import dev.nanabell.jda.command.manager.event.impl.SlashCommandEvent
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import dev.nanabell.jda.command.manager.metrics.impl.SimpleCommandMetrics
 import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestCoroutineScope
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.junit.jupiter.MockitoExtension
 import java.util.concurrent.atomic.AtomicInteger
 
-@ExtendWith(MockitoExtension::class)
+@ExperimentalCoroutinesApi
 internal class CommandManagerTest {
 
+    private val testScope = TestCoroutineScope()
     private var metrics: ICommandMetrics = SimpleCommandMetrics()
 
     @AfterEach
@@ -318,7 +319,7 @@ internal class CommandManagerTest {
         builder.setCommandMetrics(metrics)
         builder.setContextBuilder(TestCommandContextBuilder(selfUserId, hasUserPermission, hasSelfPermission))
         builder.setCommandProvider(StaticCommandProvider(commands.toList()))
-        return builder.build()
+        return builder.build().also { it.overrideScope(testScope) }
     }
 
     private fun getMessageEvent(

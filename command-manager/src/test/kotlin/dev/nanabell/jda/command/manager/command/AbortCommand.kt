@@ -6,7 +6,7 @@ import dev.nanabell.jda.command.manager.context.TestCommandContext
 @Command("abort", "Example Abort Command")
 class AbortCommand : ITestCommand {
 
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
         throw CommandAbortedException("Example Abort Command")
     }
 

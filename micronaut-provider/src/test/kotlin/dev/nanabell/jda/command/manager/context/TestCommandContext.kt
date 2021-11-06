@@ -4,7 +4,6 @@ import dev.nanabell.jda.command.manager.permission.Permission
 import org.slf4j.LoggerFactory
 
 class TestCommandContext(
-    override val ownerIds: Set<Long>,
     override val arguments: Array<String>,
     override val authorId: Long,
     override val channelId: Long,

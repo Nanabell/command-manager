@@ -8,7 +8,7 @@ import dev.nanabell.jda.command.manager.context.TestCommandContext
 @Command("sub", "Example Sub Slash Command")
 class SubSlashCommand : ITestSlashCommand {
 
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
         println("This is a Sub Command of /slash")
     }
 

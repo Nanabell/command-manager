@@ -1,3 +1,5 @@
+@file:Suppress("GradlePackageUpdate")
+
 plugins {
     kotlin("jvm")
     `java-library`
@@ -16,12 +18,14 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib", "1.5.31"))
     implementation(kotlin("reflect", "1.5.31"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
     implementation("org.slf4j:slf4j-api:1.7.32")
-    implementation("jakarta.inject:jakarta.inject-api:2.0.1.MR")
+    implementation("jakarta.inject:jakarta.inject-api:2.0.1")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.mockito:mockito-junit-jupiter:4.0.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.2.6")
 }

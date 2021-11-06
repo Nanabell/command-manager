@@ -7,7 +7,7 @@ import dev.nanabell.jda.command.manager.context.TestCommandContext
 @Command("no-parent", "This Commands Parent does not Exist as a Command")
 class UnregisteredParentCommand : ITestCommand {
 
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
     }
 
 }

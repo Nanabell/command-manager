@@ -6,7 +6,7 @@ import dev.nanabell.jda.command.manager.context.TestCommandContext
 @Command("guild", "Example Guild Slash Command", guildOnly = true)
 class GuildSlashCommand : ITestSlashCommand {
 
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
     }
 
 }

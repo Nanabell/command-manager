@@ -8,7 +8,7 @@ import dev.nanabell.jda.command.manager.context.TestCommandContext
 @Command("recurse1", "Example Recursive Command 1")
 class RecursiveCommand1 : ITestCommand {
 
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
     }
 
 }

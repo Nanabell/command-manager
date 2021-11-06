@@ -8,7 +8,7 @@ import dev.nanabell.jda.command.manager.permission.Permission
 @Command("admin", "Example Admin Command", guildOnly = true)
 class UserRequireAdminCommand : ITestCommand {
 
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
         println("Admin Executed Command")
     }
 

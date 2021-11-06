@@ -7,7 +7,7 @@ import dev.nanabell.jda.command.manager.context.TestCommandContext
 @Command("owner", "Owner Only Command Example")
 class OwnerOnlyCommand : ITestCommand {
 
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
         println("Owner Only Command Executed")
     }
 

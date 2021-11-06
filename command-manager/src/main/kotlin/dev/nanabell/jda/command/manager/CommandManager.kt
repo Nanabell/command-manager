@@ -15,6 +15,8 @@ import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import dev.nanabell.jda.command.manager.permission.IPermissionHandler
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
+import kotlinx.coroutines.*
+import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 
 class CommandManager(
@@ -32,6 +34,7 @@ class CommandManager(
 ) : IEventListener {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
+    private var executionScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
     private val slashCommands: MutableList<CompiledCommand> = mutableListOf()
     private val textCommands: MutableList<CompiledCommand> = mutableListOf()
@@ -61,84 +64,85 @@ class CommandManager(
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
-        // TODO: Move this out of event Thread
+        executionScope.launch {
+            // Ignore Bots, System & Webhook Messages
+            if (event.isBot || event.isSystem || event.isWebhook) {
+                logger.trace(
+                    "Ignoring Message {}. Bot={}, System={}, Webhook={}",
+                    event.messageId,
+                    event.isBot,
+                    event.isSystem,
+                    event.isWebhook
+                )
+                return@launch
+            }
 
-        // Ignore Bots, System & Webhook Messages
-        if (event.isBot || event.isSystem || event.isWebhook) {
-            logger.trace(
-                "Ignoring Message {}. Bot={}, System={}, Webhook={}",
-                event.messageId,
-                event.isBot,
-                event.isSystem,
-                event.isWebhook
-            )
-            return
+            // Prefix
+            // TODO: Handle Mention Prefix
+            var prefixed = false
+            var content = event.content
+            if (content.startsWith(prefix)) {
+                content = content.substring(prefix.length)
+                prefixed = true
+            }
+
+            if (!prefixed) {
+                logger.trace("Ignoring Message {}. Prefix=false", event.messageId)
+                return@launch
+            }
+
+            // Parse Command Path
+            logger.trace("Found correctly prefixed message {}, beginning command Parsing", event.messageId)
+            val commandPath = content.replace(' ', '/')
+            val paths = commandPath.split('/')
+            logger.trace("Built TextCommandPath: /{}", commandPath)
+
+            // Parse Command from CommandPath
+            var compiled: CompiledCommand? = null
+            var currentPath = paths[0]
+
+            for (path in paths) {
+                if (currentPath != path) currentPath += "/$path"
+
+                val current = textCommands.firstOrNull {
+                    (it.guildOnly == event.isFromGuild || !it.guildOnly) && it.commandPath == currentPath
+                } ?: break
+
+                logger.trace("Parsed Command: {}", current)
+                compiled = current
+            }
+
+            if (compiled == null) {
+                logger.debug("Unable to find Command with Path: /$commandPath")
+                listener.onUnknown(commandPath)
+                metrics.incUnknown()
+                return@launch
+            }
+
+            val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
+
+            launch(CoroutineName(compiled.commandPath)) { executeCommand(compiled, contextBuilder.fromMessage(event, arguments)) }
         }
 
-        // Prefix
-        // TODO: Handle Mention Prefix
-        var prefixed = false
-        var content = event.content
-        if (content.startsWith(prefix)) {
-            content = content.substring(prefix.length)
-            prefixed = true
-        }
-
-        if (!prefixed) {
-            logger.trace("Ignoring Message {}. Prefix=false", event.messageId)
-            return
-        }
-
-        // Parse Command Path
-        logger.trace("Found correctly prefixed message {}, beginning command Parsing", event.messageId)
-        val commandPath = content.replace(' ', '/')
-        val paths = commandPath.split('/')
-        logger.trace("Built TextCommandPath: /{}", commandPath)
-
-        // Parse Command from CommandPath
-        var compiled: CompiledCommand? = null
-        var currentPath = paths[0]
-
-        for (path in paths) {
-            if (currentPath != path) currentPath += "/$path"
-
-            val current = textCommands.firstOrNull {
-                (it.guildOnly == event.isFromGuild || !it.guildOnly) && it.commandPath == currentPath
-            } ?: break
-
-            logger.trace("Parsed Command: {}", current)
-            compiled = current
-        }
-
-        if (compiled == null) {
-            logger.debug("Unable to find Command with Path: /$commandPath")
-            listener.onUnknown(commandPath)
-            metrics.incUnknown()
-            return
-        }
-
-        val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
-
-        executeCommand(compiled, contextBuilder.fromMessage(event, arguments))
     }
 
     override fun onSlashCommand(event: SlashCommandEvent) {
-        // TODO: Move this out of event Thread
+        executionScope.launch {
+            logger.trace("Received Slash Command: $event")
+            val compiled = slashCommands.firstOrNull { (it.guildOnly == event.isFromGuild || !it.guildOnly) && it.commandPath == event.commandPath }
 
-        logger.trace("Received Slash Command: $event")
-        val compiled = slashCommands.firstOrNull { (it.guildOnly == event.isFromGuild || !it.guildOnly) && it.commandPath == event.commandPath }
+            if (compiled == null) {
+                logger.debug("Unable to find Command with Path: /${event.commandPath}")
+                listener.onUnknown(event.commandPath)
+                metrics.incUnknown()
+                return@launch
+            }
 
-        if (compiled == null) {
-            logger.debug("Unable to find Command with Path: /${event.commandPath}")
-            listener.onUnknown(event.commandPath)
-            metrics.incUnknown()
-            return
+            launch(CoroutineName(compiled.commandPath)) { executeCommand(compiled, contextBuilder.fromCommand(event)) }
         }
-
-        executeCommand(compiled, contextBuilder.fromCommand(event))
     }
 
-    private fun executeCommand(command: CompiledCommand, context: ICommandContext) {
+    private suspend fun executeCommand(command: CompiledCommand, context: ICommandContext) {
         if (!permissionHandler.handle(command, context)) {
             listener.onRejected(command, context, CommandRejectedException("Think of something here")) // STOPSHIP: 01/11/2021
             metrics.incRejected()
@@ -152,24 +156,24 @@ class CommandManager(
             val duration = command.execute(context)
             metrics.record(duration)
 
-            logger.debug("Command ${command::class.qualifiedName} has finished Executing in ${duration}ms")
+            logger.debug("Command $command has finished Executing in ${duration}ms")
             listener.onExecuted(command, context)
             metrics.incExecuted()
 
         } catch (e: CommandRejectedException) {
-            logger.debug("Command ${command::class.qualifiedName} has been Rejected", e)
+            logger.debug("Command $command has been Rejected", e)
             listener.onRejected(command, context, e)
             metrics.incRejected()
             return
 
         } catch (e: CommandAbortedException) {
-            logger.debug("Command ${command::class.qualifiedName} has been Aborted", e)
+            logger.debug("Command $command has been Aborted", e)
             listener.onAborted(command, context, e)
             metrics.incAborted()
             return
 
         } catch (e: Throwable) {
-            logger.error("Command ${command::class.qualifiedName} has failed!", e)
+            logger.error("Command $command has failed!", e)
             listener.onFailed(command, context, e)
             metrics.incFailed()
             return
@@ -181,5 +185,11 @@ class CommandManager(
         val commands = ArrayList(textCommands)
         commands.addAll(slashCommands)
         return commands
+    }
+
+    @TestOnly
+    internal fun overrideScope(scope: CoroutineScope) {
+        executionScope.cancel()
+        this.executionScope = scope
     }
 }

@@ -7,7 +7,7 @@ import dev.nanabell.jda.command.manager.context.ICommandContext
 interface ICommand<in T : ICommandContext>{
 
     @Throws(CommandException::class)
-    fun execute(context: T)
+    suspend fun execute(context: T)
 
     fun onReject(context: T, e: CommandRejectedException) {
         context.reply("Your Command has been rejected!\n`${e.message}`")

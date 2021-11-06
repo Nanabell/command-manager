@@ -7,6 +7,6 @@ import dev.nanabell.jda.command.manager.context.TestCommandContext
 @SubCommandOf(SubSubSlashCommand::class)
 @Command("invalid", "Invalid Sub Slash Command, Depth is more than 3!")
 class InvalidSubSlashCommand : ITestSlashCommand {
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
     }
 }

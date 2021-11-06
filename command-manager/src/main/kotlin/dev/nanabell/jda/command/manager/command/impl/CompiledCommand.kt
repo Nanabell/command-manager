@@ -22,7 +22,7 @@ data class CompiledCommand(
 ) {
     val isSlashCommand: Boolean = command is ISlashCommand
 
-    fun execute(context: ICommandContext): Long {
+    suspend fun execute(context: ICommandContext): Long {
         val start = System.currentTimeMillis()
         command.execute(context)
         return System.currentTimeMillis() - start

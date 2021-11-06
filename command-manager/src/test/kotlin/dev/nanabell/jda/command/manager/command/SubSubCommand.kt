@@ -7,7 +7,7 @@ import dev.nanabell.jda.command.manager.context.TestCommandContext
 @Command("sub2", "DoubleSub Command Example")
 class SubSubCommand : ITestCommand {
 
-    override fun execute(context: TestCommandContext) {
+    override suspend fun execute(context: TestCommandContext) {
     }
 
 }
