@@ -14,6 +14,8 @@ import dev.nanabell.jda.command.manager.permission.IPermissionHandler
 import dev.nanabell.jda.command.manager.permission.impl.DefaultPermissionHandlerBuilder
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
 import dev.nanabell.jda.command.manager.provider.impl.StaticCommandProvider
+import dev.nanabell.jda.command.manager.registry.ICommandRegistry
+import dev.nanabell.jda.command.manager.registry.impl.MemoryCommandRegistry
 import org.slf4j.LoggerFactory
 
 @Suppress("unused")
@@ -28,6 +30,7 @@ class CommandManagerBuilder(private var prefix: String, vararg ownerIds: Long) {
     private var listener: CompositeCommandListener = CompositeCommandListener()
     private var provider: ICommandProvider? = null
     private var compiler: ICommandCompiler? = null
+    private var registry: ICommandRegistry? = null
     private var permissionHandler: IPermissionHandler? = null
     private var context: ICommandContextBuilder? = null
     private var metrics: ICommandMetrics? = null
@@ -37,10 +40,11 @@ class CommandManagerBuilder(private var prefix: String, vararg ownerIds: Long) {
     fun build(): CommandManager {
         val provider = this.provider ?: StaticCommandProvider(emptyList()).also { logger.warn("No Command Provider has been set. Building Command Manager with 0 Commands") }
         val compiler = this.compiler ?: AnnotationCommandCompiler()
+        val registry = this.registry ?: MemoryCommandRegistry()
+        val mediator = this.mediator ?: NoOpMediator().also { logger.warn("No Event Mediator has been set. Command Manger event will not be called automatically!") }
         val context = this.context ?: BasicCommandContextBuilder().also { logger.warn("No Command Context Builder has been set. Building minimal. This will not be usable for real scenarios") }
         val permissionHandler = this.permissionHandler ?: DefaultPermissionHandlerBuilder().build()
         val metrics = this.metrics ?: SimpleCommandMetrics()
-        val mediator = this.mediator ?: NoOpMediator().also { logger.warn("No Event Mediator has been set. Command Manger event will not be called automatically!") }
 
         if (prefix.contains(' ')) throw IllegalArgumentException("Spaces are not allowed in the prefix: '$prefix'")
 
@@ -49,13 +53,14 @@ class CommandManagerBuilder(private var prefix: String, vararg ownerIds: Long) {
             allowMention,
             autoRegister,
             ownerIds,
-            listener,
             provider,
             compiler,
-            permissionHandler,
-            metrics,
+            registry,
+            mediator,
             context,
-            mediator
+            permissionHandler,
+            listener,
+            metrics
         )
     }
 

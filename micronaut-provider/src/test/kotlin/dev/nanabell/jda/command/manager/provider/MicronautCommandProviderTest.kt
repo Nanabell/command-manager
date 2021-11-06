@@ -31,9 +31,10 @@ internal class MicronautCommandProviderTest {
             .setContextBuilder(TestCommandContextBuilder())
             .build()
 
-        Assertions.assertEquals(1, manager.getCommands().size)
+        val registry = manager.registry
+        Assertions.assertEquals(1, registry.size)
 
-        val dummy = manager.getCommands().first()
+        val dummy = registry.getAll().first()
         Assertions.assertInstanceOf(DummyCommand::class.java, dummy.command)
     }
 }

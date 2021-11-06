@@ -15,29 +15,30 @@ import dev.nanabell.jda.command.manager.listener.ICommandListener
 import dev.nanabell.jda.command.manager.metrics.ICommandMetrics
 import dev.nanabell.jda.command.manager.permission.IPermissionHandler
 import dev.nanabell.jda.command.manager.provider.ICommandProvider
+import dev.nanabell.jda.command.manager.registry.ICommandRegistry
 import kotlinx.coroutines.*
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 
+@Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
 class CommandManager(
-    private val prefix: String,
-    private val allowMention: Boolean = false,
-    private val autoRegisterCommands: Boolean = false,
+    val prefix: String,
+    val allowMention: Boolean = false,
+    val autoRegisterCommands: Boolean = false,
     val ownerIds: Set<Long>,
-    private val listener: ICommandListener,
-    provider: ICommandProvider,
-    compiler: ICommandCompiler,
-    private val permissionHandler: IPermissionHandler,
-    private val metrics: ICommandMetrics,
-    private val contextBuilder: ICommandContextBuilder,
-    eventMediator: IEventMediator
+    val provider: ICommandProvider,
+    val compiler: ICommandCompiler,
+    val registry: ICommandRegistry,
+    val mediator: IEventMediator,
+    val contexts: ICommandContextBuilder,
+    val permissions: IPermissionHandler,
+    val listener: ICommandListener,
+    val metrics: ICommandMetrics
 ) : IEventListener {
 
     private val logger = LoggerFactory.getLogger(CommandManager::class.java)
-    private var executionScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    private val slashCommands: MutableList<CompiledCommand> = mutableListOf()
-    private val textCommands: MutableList<CompiledCommand> = mutableListOf()
+    private var executionScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     init {
         // Load Commands
@@ -49,18 +50,15 @@ class CommandManager(
 
         for (command in commands) {
             val compiled = compiler.compile(command, this)
-            when (compiled.isSlashCommand) {
-                false -> textCommands.add(compiled)
-                true -> slashCommands.add(compiled)
-            }
+            registry.registerCommand(compiled)
         }
 
         // TODO: Register Slash Commands if enabled
         // TODO: Ensure Prefix has no Invalid Characters
-        logger.debug("Registering self at event Mediator: ${eventMediator::class.simpleName}")
-        eventMediator.registerCommandManager(this)
+        logger.debug("Registering self at event Mediator: ${mediator::class.simpleName}")
+        mediator.registerCommandManager(this)
 
-        logger.info("Finished ${this::class.simpleName} Initialization with ${getCommands().size} Command/s")
+        logger.info("Finished ${this::class.simpleName} Initialization with ${registry.size} Command/s")
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
@@ -103,10 +101,7 @@ class CommandManager(
 
             for (path in paths) {
                 if (currentPath != path) currentPath += "/$path"
-
-                val current = textCommands.firstOrNull {
-                    (it.guildOnly == event.isFromGuild || !it.guildOnly) && it.commandPath == currentPath
-                } ?: break
+                val current = registry.findTextCommand(currentPath) { it.guildOnly == event.isFromGuild || !it.guildOnly } ?: break
 
                 logger.trace("Parsed Command: {}", current)
                 compiled = current
@@ -121,7 +116,7 @@ class CommandManager(
 
             val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
 
-            launch(CoroutineName(compiled.commandPath)) { executeCommand(compiled, contextBuilder.fromMessage(event, arguments)) }
+            launch(CoroutineName(compiled.commandPath)) { executeCommand(compiled, contexts.fromMessage(event, arguments)) }
         }
 
     }
@@ -129,21 +124,21 @@ class CommandManager(
     override fun onSlashCommand(event: SlashCommandEvent) {
         executionScope.launch {
             logger.trace("Received Slash Command: $event")
-            val compiled = slashCommands.firstOrNull { (it.guildOnly == event.isFromGuild || !it.guildOnly) && it.commandPath == event.commandPath }
+            val command = registry.findSlashCommand(event.commandPath) { it.guildOnly == event.isFromGuild || !it.guildOnly }
 
-            if (compiled == null) {
+            if (command == null) {
                 logger.debug("Unable to find Command with Path: /${event.commandPath}")
                 listener.onUnknown(event.commandPath)
                 metrics.incUnknown()
                 return@launch
             }
 
-            launch(CoroutineName(compiled.commandPath)) { executeCommand(compiled, contextBuilder.fromCommand(event)) }
+            launch(CoroutineName(command.commandPath)) { executeCommand(command, contexts.fromCommand(event)) }
         }
     }
 
     private suspend fun executeCommand(command: CompiledCommand, context: ICommandContext) {
-        if (!permissionHandler.handle(command, context)) {
+        if (!permissions.handle(command, context)) {
             listener.onRejected(command, context, CommandRejectedException("Think of something here")) // STOPSHIP: 01/11/2021
             metrics.incRejected()
             return
@@ -179,12 +174,6 @@ class CommandManager(
             return
 
         }
-    }
-
-    fun getCommands(): List<CompiledCommand> {
-        val commands = ArrayList(textCommands)
-        commands.addAll(slashCommands)
-        return commands
     }
 
     @TestOnly

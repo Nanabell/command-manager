@@ -34,25 +34,25 @@ internal class CommandManagerTest {
     @Test
     internal fun `Test Loading Single Command`() {
         val manager = buildCommandManager(DummyCommand())
-        assertEquals(1, manager.getCommands().size, "Expected only 1 Command to be loaded")
+        assertEquals(1, manager.registry.size, "Expected only 1 Command to be loaded")
     }
 
     @Test
     internal fun `Test Loading Multiple Commands`() {
         val manager = buildCommandManager(DummyCommand(), FailingCommand())
-        assertEquals(2, manager.getCommands().size, "Expected only 2 Commands to be loaded")
+        assertEquals(2, manager.registry.size, "Expected only 2 Commands to be loaded")
     }
 
     @Test
     internal fun `Test Loading Sub Commands`() {
         val manager = buildCommandManager(DummyCommand(), SubCommand())
-        assertEquals(2, manager.getCommands().size, "Expected only 2 Commands to be loaded")
+        assertEquals(2, manager.registry.size, "Expected only 2 Commands to be loaded")
     }
 
     @Test
     internal fun `Test Loading multiSub Commands`() {
         val manager = buildCommandManager(DummyCommand(), SubCommand(), SubSubCommand())
-        assertEquals(3, manager.getCommands().size, "Expected only 3 Commands to be loaded")
+        assertEquals(3, manager.registry.size, "Expected only 3 Commands to be loaded")
     }
 
     @Test
@@ -74,7 +74,7 @@ internal class CommandManagerTest {
         val manager = buildCommandManager(DummyCommand())
 
         manager.onMessageReceived(getMessageEvent(";;example"))
-        assertEquals(1, manager.getCommands().size, "Expected only 1 Command to be loaded")
+        assertEquals(1, manager.registry.size, "Expected only 1 Command to be loaded")
     }
 
     @Test
