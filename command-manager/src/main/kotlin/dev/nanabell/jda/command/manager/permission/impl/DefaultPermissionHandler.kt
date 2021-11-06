@@ -18,7 +18,7 @@ class DefaultPermissionHandler(
             return true
 
         // Add Owner override to any and all Permission Checks
-        if (rootOwner && context.ownerIds.contains(context.authorId))
+        if (rootOwner && command.manager.ownerIds.contains(context.authorId))
             return true
 
         for (check in checks) {
