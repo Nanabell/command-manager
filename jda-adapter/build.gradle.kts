@@ -18,6 +18,12 @@ dependencies {
     }
 }
 
+java {
+    sourceCompatibility = JavaVersion.toVersion("11")
+    withSourcesJar()
+    withJavadocJar()
+}
+
 tasks {
     compileKotlin {
         kotlinOptions {
