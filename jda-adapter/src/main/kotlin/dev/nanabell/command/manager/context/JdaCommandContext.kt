@@ -16,6 +16,7 @@ class JdaCommandContext(
 ) : ICommandContext {
 
     val jda: JDA = user.jda
+    val member = guild?.getMember(user)
 
     override val authorId: Long = user.idLong
     override val channelId: Long = channel.idLong
