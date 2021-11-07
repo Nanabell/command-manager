@@ -13,6 +13,7 @@ class JdaCommandContext(
     val user: User,
     val channel: MessageChannel,
     val guild: Guild?,
+    val responseNumber: Long
 ) : ICommandContext {
 
     val jda: JDA = user.jda
