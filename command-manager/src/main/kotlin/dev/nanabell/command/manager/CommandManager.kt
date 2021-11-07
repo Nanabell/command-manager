@@ -102,7 +102,7 @@ class CommandManager(
                 if (currentPath != path) currentPath += "/$path"
                 val current = registry.findTextCommand(currentPath) { it.guildOnly == event.isFromGuild || !it.guildOnly } ?: break
 
-                logger.trace("Parsed Command: {}", current)
+                logger.trace("Parsed /$currentPath to: {}", current.command::class.qualifiedName)
                 compiled = current
             }
 
@@ -137,7 +137,7 @@ class CommandManager(
     }
 
     private suspend fun executeCommand(command: CompiledCommand, context: ICommandContext) {
-        logger.debug("Checking Permissions for $command in $context")
+        logger.trace("Checking Permissions for ${command.command::class.simpleName} in ${context.format()}")
         if (!permissions.handle(command, context)) {
             listener.onRejected(command, context, CommandRejectedException("Think of something here"))
             metrics.incRejected()
@@ -145,30 +145,30 @@ class CommandManager(
         }
 
         try {
-            logger.debug("Executing Command: $command")
+            logger.trace("Executing Command: ${command.command::class.simpleName}")
             listener.onExecute(command, context)
 
             val duration = command.execute(context)
             metrics.record(duration)
 
-            logger.debug("Command $command has finished Executing in ${duration}ms")
+            logger.debug("Command ${command.command::class.simpleName} has finished Executing in ${duration}ms")
             listener.onExecuted(command, context)
             metrics.incExecuted()
 
         } catch (e: CommandRejectedException) {
-            logger.debug("Command $command has been Rejected", e)
+            logger.debug("Command ${command.command::class.simpleName} has been Rejected: ${e.message}")
             listener.onRejected(command, context, e)
             metrics.incRejected()
             return
 
         } catch (e: CommandAbortedException) {
-            logger.debug("Command $command has been Aborted", e)
+            logger.debug("Command ${command.command::class.simpleName} has been Aborted", e)
             listener.onAborted(command, context, e)
             metrics.incAborted()
             return
 
         } catch (e: Throwable) {
-            logger.error("Command $command has failed!", e)
+            logger.error("Command ${command.command::class.simpleName} has failed!", e)
             listener.onFailed(command, context, e)
             metrics.incFailed()
             return

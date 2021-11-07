@@ -14,4 +14,8 @@ interface ICommandContext {
     fun hasPermission(memberId: Long, vararg permission: Permission): Boolean
 
     fun reply(message: String)
+
+    fun format(): String {
+        return "G:$guildId C:$channelId/U:$authorId"
+    }
 }

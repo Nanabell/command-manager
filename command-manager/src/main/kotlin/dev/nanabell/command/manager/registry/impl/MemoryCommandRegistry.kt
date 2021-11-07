@@ -18,7 +18,7 @@ class MemoryCommandRegistry : ICommandRegistry {
     override val size: Int get() = commands.size
 
     override fun registerCommand(command: CompiledCommand, override: Boolean) {
-        logger.debug("Registering command $command")
+        logger.debug("Registering command ${command.command::class.qualifiedName}")
         val existing = findCommand(command.commandPath)
         if (existing != null) {
             if (!override)  throw CommandNotUniqueException(command, existing)
@@ -31,7 +31,7 @@ class MemoryCommandRegistry : ICommandRegistry {
     }
 
     override fun deregisterCommand(command: CompiledCommand) {
-        logger.debug("De-Registering Command $command")
+        logger.debug("De-Registering Command ${command.command::class.qualifiedName}")
         lock.write { commands.remove(command) }
     }
 
