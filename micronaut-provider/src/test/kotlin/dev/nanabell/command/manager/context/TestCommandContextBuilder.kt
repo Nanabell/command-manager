@@ -8,11 +8,11 @@ class TestCommandContextBuilder : ICommandContextBuilder {
     override fun fromMessage(
         event: MessageReceivedEvent,
         arguments: Array<String>
-    ): ICommandContext {
+    ): ITextCommandContext {
         throw UnsupportedOperationException()
     }
 
-    override fun fromCommand(event: SlashCommandEvent): ICommandContext {
+    override fun fromCommand(event: SlashCommandEvent): ISlashCommandContext {
         throw UnsupportedOperationException()
     }
 

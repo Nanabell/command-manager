@@ -5,8 +5,8 @@ import dev.nanabell.command.manager.event.impl.SlashCommandEvent
 
 interface ICommandContextBuilder {
 
-    fun fromMessage(event: MessageReceivedEvent, arguments: Array<String>): ICommandContext
+    fun fromMessage(event: MessageReceivedEvent, arguments: Array<String>): ITextCommandContext
 
-    fun fromCommand(event: SlashCommandEvent): ICommandContext
+    fun fromCommand(event: SlashCommandEvent): ISlashCommandContext
 
 }

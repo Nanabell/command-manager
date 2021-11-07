@@ -7,9 +7,8 @@ import net.dv8tion.jda.api.entities.GuildChannel
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.User
 
-@Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
-class JdaCommandContext(
-    override val arguments: Array<String>,
+@Suppress("MemberVisibilityCanBePrivate", "CanBeParameter", "unused")
+open class BaseCommandContext(
     val user: User,
     val channel: MessageChannel,
     val guild: Guild?,
@@ -25,10 +24,10 @@ class JdaCommandContext(
     override val selfUserId: Long = jda.selfUser.idLong
 
     override fun hasPermission(memberId: Long, vararg permission: Permission): Boolean {
-        val member = guild?.getMemberById(memberId) ?: return true
-        return member.hasPermission(channel as GuildChannel,
+        return member?.hasPermission(
+            channel as GuildChannel,
             net.dv8tion.jda.api.Permission.getPermissions(Permission.getRaw(*permission))
-        )
+        ) ?: true
     }
 
     override fun reply(message: String) {

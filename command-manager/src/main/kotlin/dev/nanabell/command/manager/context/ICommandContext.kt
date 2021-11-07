@@ -4,8 +4,6 @@ import dev.nanabell.command.manager.permission.Permission
 
 interface ICommandContext {
 
-    val arguments: Array<String>
-
     val authorId: Long
     val channelId: Long
     val guildId: Long?

@@ -12,12 +12,12 @@ class TestCommandContextBuilder(
     override fun fromMessage(
         event: MessageReceivedEvent,
         arguments: Array<String>
-    ): ICommandContext {
-        return TestCommandContext(arguments, event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
+    ): ITextCommandContext {
+        return TestCommandContext(arguments, event.content, event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
     }
 
-    override fun fromCommand(event: SlashCommandEvent): ICommandContext {
-        return TestCommandContext(emptyArray(), event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
+    override fun fromCommand(event: SlashCommandEvent): ISlashCommandContext {
+        return TestCommandContext(emptyArray(), event.commandPath, event.authorId, event.channelId, event.guildId, selfUserId, hasUserPermission, hasSelfPermission)
     }
 
 }

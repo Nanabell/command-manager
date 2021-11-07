@@ -1,6 +1,6 @@
 package dev.nanabell.command.manager.command
 
-import dev.nanabell.command.manager.context.JdaCommandContext
+import dev.nanabell.command.manager.context.text.CommandContext
 
 @Suppress("unused")
-interface JdaCommand : ICommand<JdaCommandContext>
+interface JdaCommand : ICommand<CommandContext>

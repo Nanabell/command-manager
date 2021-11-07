@@ -95,7 +95,7 @@ A Command is always Bound to a Class and requires a `ICommand<ICommandContext>` 
 ```kotlin
 import dev.nanabell.command.manager.command.Command
 import dev.nanabell.command.manager.command.JdaCommand
-import dev.nanabell.command.manager.context.JdaCommandContext
+import dev.nanabell.command.manager.context.text.CommandContext
 
 @Command(name = "demo", description = "This is a Demo Command")
 class DemoCommand : JdaCommand {

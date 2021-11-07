@@ -5,13 +5,14 @@ import org.slf4j.LoggerFactory
 
 class TestCommandContext(
     override val arguments: Array<String>,
+    override val content: String,
     override val authorId: Long,
     override val channelId: Long,
     override val guildId: Long?,
     override val selfUserId: Long,
     private val hasUserPermission: Boolean,
     private val hasSelfPermission: Boolean,
-) : ICommandContext {
+) : ITextCommandContext, ISlashCommandContext {
 
     private val logger = LoggerFactory.getLogger(::TestCommandContext::class.java)
 
