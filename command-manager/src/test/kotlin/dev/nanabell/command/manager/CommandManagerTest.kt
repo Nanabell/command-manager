@@ -302,6 +302,23 @@ internal class CommandManagerTest {
         assertEquals(1, metrics.getExecuted())
     }
 
+    @Test
+    internal fun `Test Sub Comamnd with Arguments gets the correct number of Arguments`() {
+        val count = AtomicInteger(0)
+        val manager = buildCommandManager(DummyCommand(), SubArgumentCommand(count))
+
+        manager.onMessageReceived(getMessageEvent(";;example argument argument1"))
+        assertEquals(1, count.get(), "Expected One Argument")
+    }
+
+    @Test
+    internal fun `Test Sub Command without Arguments gets no Arguments`() {
+        val count = AtomicInteger(0)
+        val manager = buildCommandManager(DummyCommand(), SubArgumentCommand(count))
+
+        manager.onMessageReceived(getMessageEvent(";;example argument"))
+        assertEquals(0, count.get(), "Expected no Arguments")
+    }
 
     private fun buildCommandManager(
         vararg commands: ICommand<*>,

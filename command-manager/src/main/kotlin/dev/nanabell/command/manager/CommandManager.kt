@@ -113,7 +113,7 @@ class CommandManager(
                 return@launch
             }
 
-            val arguments = paths.subList(currentPath.count { it == '/' }.coerceAtLeast(1), paths.size).toTypedArray()
+            val arguments = paths.subList(compiled.commandPath.split('/').count(), paths.size).toTypedArray()
 
             launch(CoroutineName(compiled.commandPath)) { executeCommand(compiled, contexts.fromMessage(event, arguments)) }
         }
